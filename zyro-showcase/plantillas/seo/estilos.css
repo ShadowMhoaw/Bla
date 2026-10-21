@@ -1,0 +1,139 @@
+:root {
+  --fondo: #eef0e9;
+  --tinta: #16190f;
+  --suave: #5d6652;
+  --linea: #e3e7da;
+  --tarjeta: #f4f6ef;
+  --oscuro: #14180f;
+  --lima: #a3e635;
+  --lima-suave: #e6f8bd;
+  --verde: #3d5a1a;
+  --rojo: #b3402a;
+  --rojo-suave: #fbe3dc;
+  --enlace: #5bd0f0;
+  --sombra: 0 1px 2px rgba(20, 24, 15, .06), 0 12px 40px rgba(20, 24, 15, .08);
+  --sans: "DM Sans", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--fondo); color: var(--tinta); font: 16px/1.5 var(--sans); }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--verde); outline-offset: 2px; }
+
+.franja { display: flex; flex-wrap: wrap; gap: 4px 10px; justify-content: center; align-items: center; background: #0b0d08; color: #fff;
+  padding: 7px 16px; font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; font-weight: 600; text-align: center; }
+.franja span:nth-child(3) { font-weight: 400; opacity: .8; }
+.franja a { color: var(--enlace); text-decoration: none; }
+.franja a:hover { text-decoration: underline; }
+
+.informe { max-width: 1000px; margin: 32px auto 56px; padding: 32px; background: #fff; border-radius: 22px; box-shadow: var(--sombra); }
+
+.cabecera { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 20px; align-items: flex-end;
+  padding-bottom: 20px; border-bottom: 1px solid var(--linea); }
+.sobretitulo { margin: 0 0 6px; font: 500 10.5px/1.2 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--verde); }
+h1 { margin: 0; font-size: clamp(32px, 5vw, 44px); line-height: 1.05; letter-spacing: -.035em; }
+.dominio { margin: 8px 0 0; font: 11px/1 var(--mono); color: var(--suave); }
+
+.acciones { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.meses { display: inline-flex; padding: 3px; background: var(--fondo); border-radius: 10px; }
+.meses button { border: 0; background: none; padding: 7px 14px; border-radius: 8px; font-size: 12.5px; color: var(--suave); cursor: pointer; }
+.meses button:hover { color: var(--tinta); }
+.meses button[aria-selected="true"] { background: #fff; color: var(--tinta); font-weight: 700; box-shadow: 0 1px 3px rgba(20, 24, 15, .15); }
+.boton-pdf { border: 0; background: var(--oscuro); color: #fff; padding: 9px 16px; border-radius: 9px; font-size: 12.5px; font-weight: 700; cursor: pointer; }
+.boton-pdf:hover { background: #262d1a; }
+
+.resumen { margin: 22px 0; font-size: 16px; line-height: 1.65; color: #3d4433; max-width: 78ch; }
+.resumen strong { color: var(--tinta); }
+
+.cifras { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.cifra { background: var(--tarjeta); border-radius: 14px; padding: 16px 16px 14px; display: flex; flex-direction: column; gap: 6px; }
+.cifra:first-child { background: var(--oscuro); color: #fff; }
+.cifra-nombre { font-size: 11.5px; color: var(--suave); }
+.cifra:first-child .cifra-nombre { color: rgba(255, 255, 255, .7); }
+.cifra-valor { font-size: 30px; font-weight: 700; letter-spacing: -.03em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.delta { align-self: flex-start; font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--lima-suave); color: #29420d; }
+.cifra:first-child .delta { background: var(--lima); color: #14180f; }
+.delta.baja { background: var(--rojo-suave); color: var(--rojo); }
+
+.bloque { margin-top: 30px; }
+.bloque-cab { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 10px; }
+h2 { margin: 0; font-size: 14px; letter-spacing: -.005em; }
+.leyenda { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--suave); }
+.leyenda i { width: 14px; height: 2px; background: var(--verde); display: inline-block; }
+
+.grafico svg { width: 100%; height: auto; display: block; overflow: visible; }
+.grafico { min-height: 190px; }
+.grafico .rejilla { stroke: var(--linea); stroke-width: 1; }
+.grafico .eje { fill: var(--suave); font: 10px var(--mono); }
+.grafico .area { fill: url(#relleno); }
+.grafico .linea { fill: none; stroke: var(--verde); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.grafico .punto { fill: #fff; stroke: var(--verde); stroke-width: 1.5; }
+.grafico .punto.activo { fill: var(--lima); stroke: var(--oscuro); stroke-width: 2; }
+.grafico .zona { fill: transparent; cursor: default; }
+.grafico .guia { stroke: var(--verde); stroke-width: 1; stroke-dasharray: 3 3; opacity: .45; }
+.grafico .etiqueta rect { fill: var(--oscuro); }
+.grafico .etiqueta text { fill: #fff; font: 700 11px var(--sans); text-anchor: middle; }
+.grafico .mes-activo { fill: var(--tinta); font-weight: 700; }
+
+.dos-columnas { display: grid; grid-template-columns: 1.15fr 1fr; gap: 28px; }
+.tabla-caja { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; font: 500 10.5px/1.2 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--suave);
+  padding: 0 8px 8px 0; border-bottom: 1px solid var(--linea); white-space: nowrap; }
+td { padding: 9px 8px 9px 0; border-bottom: 1px solid var(--linea); vertical-align: top; }
+td.num, th.num { text-align: right; padding-right: 0; padding-left: 8px; font-variant-numeric: tabular-nums; }
+td.num { white-space: nowrap; }
+td .ruta { font: 12px var(--mono); color: var(--tinta); overflow-wrap: anywhere; }
+td .nota { display: block; font-size: 11.5px; color: var(--suave); }
+tr.otras td { color: var(--suave); }
+.sube { color: #3c6d0f; font-weight: 700; }
+.baja-txt { color: var(--rojo); font-weight: 700; }
+.igual { color: var(--suave); }
+
+.mantenimiento { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.tarea { background: var(--tarjeta); border-radius: 14px; padding: 16px; }
+.tarea h3 { margin: 0 0 2px; font-size: 11.5px; font-weight: 500; color: var(--suave); }
+.tarea .gran { font-size: 24px; font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.tarea p { margin: 4px 0 0; font-size: 12.5px; color: #3d4433; line-height: 1.5; }
+.hecho { margin: 14px 0 0; padding: 0; list-style: none; display: grid; gap: 8px; font-size: 13px; }
+.hecho li { display: grid; grid-template-columns: 18px 1fr; gap: 8px; align-items: start; }
+.hecho li::before { content: "✓"; width: 18px; height: 18px; border-radius: 50%; background: var(--lima-suave); color: #29420d;
+  font-size: 11px; font-weight: 800; display: grid; place-items: center; margin-top: 2px; }
+
+.proximo ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; font-size: 13.5px; }
+.proximo li { padding: 11px 14px; background: var(--tarjeta); border-radius: 10px; display: flex; justify-content: space-between; gap: 12px; }
+.proximo li span:last-child { color: var(--suave); font: 11px/1.8 var(--mono); white-space: nowrap; }
+
+.pie { margin-top: 32px; padding-top: 18px; border-top: 1px solid var(--linea); }
+.pie p { margin: 0; font-size: 11.5px; color: var(--suave); max-width: 80ch; }
+
+@media (max-width: 860px) {
+  .dos-columnas { grid-template-columns: 1fr; gap: 0; }
+  .mantenimiento { grid-template-columns: 1fr; }
+}
+@media (max-width: 720px) {
+  .informe { margin: 0; border-radius: 0; padding: 22px 16px 36px; box-shadow: none; }
+  .cifras { grid-template-columns: repeat(2, 1fr); }
+  .cifra-valor { font-size: 26px; }
+  .acciones { width: 100%; }
+  .meses { flex: 1 1 100%; }
+  .meses button { flex: 1; padding: 8px 6px; }
+  .boton-pdf { flex: 1 1 100%; padding: 11px; }
+  .proximo li { flex-direction: column; gap: 2px; }
+  .franja-sep { display: none; }
+  th { white-space: normal; }
+}
+
+@media print {
+  @page { size: A4; margin: 14mm; }
+  body { background: #fff; }
+  .franja, .acciones { display: none; }
+  .informe { margin: 0; padding: 0; box-shadow: none; border-radius: 0; max-width: none; }
+  .bloque, .cifra, .tarea { break-inside: avoid; }
+  .cifra:first-child, .delta, .hecho li::before { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .cifra:first-child .cifra-nombre, .cifra:first-child { color: #fff; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cifra, .grafico .punto { transition: background-color .2s; }
+}

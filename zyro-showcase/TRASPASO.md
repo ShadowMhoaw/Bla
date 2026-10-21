@@ -8,6 +8,9 @@ historial de la sesión «Configuración local web» (20/10/2026):
 - `recuperado/enlazar-demos.js`: script con el que se desviaron los enlaces de la web principal (`localhost:3001`)
   al showcase local (`localhost:3410`) para hacer las capturas. No forma parte del proyecto.
 
+- `plantillas/seo/`: **reconstrucción** de la plantilla de SEO (Reformas Nova) hecha desde una captura, no el código
+  original. Al copiar tu proyecto, decide cuál de las dos versiones de `plantillas/seo/` te quedas.
+
 ## Estado a 20/10/2026
 - Showcase terminado y probado en local (`node servir.js 3410`).
 - Web principal (`Desktop\Webs\WEB PRINCIPAL`, puerto 3001) ya enlaza al showcase desde Inicio, Ecosistema y Servicios.
