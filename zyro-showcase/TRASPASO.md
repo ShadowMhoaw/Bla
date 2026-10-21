@@ -14,6 +14,10 @@ historial de la sesión «Configuración local web» (20/10/2026):
   tablas con filtro y orden, y datos en `datos.js`. Diseño en blanco y negro, calendario con los 12 meses (octubre de 2025 a
   septiembre de 2026) y formulario de contacto con Zyro. Enlace directo a un mes: `#2026-09`.
 
+- `plantillas/tienda/`: **reconstrucción** de la tienda Olmo (HTML + Tailwind compilado + JS sin build) hecha desde una captura
+  móvil y un encargo de diseño: hero, barra de confianza, catálogo con suscripción y molienda, cesta lateral con envío
+  gratis y buscador. No es el código original (que además tenía ficha y compra en tres pasos). Ver `plantillas/tienda/LEEME.md`.
+
 ## Estado a 20/10/2026
 - Showcase terminado y probado en local (`node servir.js 3410`).
 - Web principal (`Desktop\Webs\WEB PRINCIPAL`, puerto 3001) ya enlaza al showcase desde Inicio, Ecosistema y Servicios.

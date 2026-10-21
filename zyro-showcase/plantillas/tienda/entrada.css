@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Lo que Tailwind no resuelve con clases sueltas: diálogos animados, foco, scroll y movimiento reducido. */
+@layer base {
+  :root { --ease: cubic-bezier(.32, .72, 0, 1); }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  [hidden] { display: none !important; }
+  html.bloqueado { overflow: hidden; }
+  body { @apply bg-crema font-sans text-carbon antialiased; }
+  h1, h2, h3, .serif { font-variation-settings: "opsz" 48; }
+  :focus-visible { outline: 2px solid theme("colors.cafe.DEFAULT"); outline-offset: 2px; border-radius: 6px; }
+  [id] { scroll-margin-top: 5.5rem; }
+  img.rota { visibility: hidden; }
+}
+
+@layer components {
+  /* Botones: píldora, hover suave. Primario oscuro y secundario con contorno. */
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-[15px] font-medium transition duration-200 ease-suave hover:scale-[1.02] active:scale-[.98] disabled:pointer-events-none disabled:opacity-50; }
+  .btn-primario { @apply bg-carbon text-crema hover:opacity-90; }
+  .btn-contorno { @apply border border-carbon bg-transparent text-carbon hover:bg-carbon/5; }
+  .btn-claro { @apply bg-crema text-carbon hover:opacity-90; }
+  .icono-btn { @apply relative grid size-11 shrink-0 place-items-center rounded-full border border-linea bg-crema text-carbon transition duration-200 ease-suave hover:scale-105 hover:bg-arena active:scale-95; }
+  .eyebrow { @apply text-xs font-semibold uppercase tracking-[.18em] text-cafe; }
+
+  /* Cabecera: al buscar en móvil, la lupa gana espacio y se esconde lo demás */
+  @media (max-width: 639px) { .cabecera:has(#q:focus) .al-buscar { display: none; } }
+  .buscador { @apply relative flex min-w-0 flex-1 items-center gap-2 rounded-full border border-linea bg-crema px-4 transition-all duration-300 ease-suave sm:mx-auto sm:max-w-[24rem]; }
+  .buscador:focus-within { @apply border-carbon/60 bg-white shadow-[0_6px_24px_-8px_rgba(26,26,26,.25)] sm:max-w-[34rem]; }
+  #envio-barra.conseguido #envio-relleno { background: #4C7A55; }
+
+  /* Diálogos nativos: el navegador atrapa el foco y cierra con Esc; aquí solo el movimiento */
+  dialog.hoja { @apply m-0 max-h-none max-w-none overflow-visible border-0 bg-transparent p-0 text-carbon; }
+  dialog.hoja::backdrop { background: rgba(26, 26, 26, .5); opacity: 0; transition: opacity .3s var(--ease); backdrop-filter: blur(2px); }
+  dialog.hoja.visible::backdrop { opacity: 1; }
+  dialog.hoja-lateral { position: fixed; inset: 0 0 0 auto; height: 100dvh; width: min(100vw, 27rem); transform: translateX(100%); transition: transform .4s var(--ease); }
+  dialog.hoja-lateral.visible { transform: none; }
+  dialog.hoja-centro { position: fixed; inset: auto 0 0 0; width: 100%; transform: translateY(100%); transition: transform .4s var(--ease), opacity .3s; }
+  dialog.hoja-centro.visible { transform: none; }
+  @media (min-width: 640px) {
+    dialog.hoja-centro { inset: 0; margin: auto; height: fit-content; width: min(34rem, calc(100vw - 2rem)); opacity: 0; transform: translateY(14px) scale(.98); }
+    dialog.hoja-centro.visible { opacity: 1; transform: none; }
+  }
+
+  /* Aviso emergente */
+  #aviso { opacity: 0; transition: opacity .25s, display .25s allow-discrete, overlay .25s allow-discrete; }
+  #aviso:popover-open { opacity: 1; }
+  @starting-style { #aviso:popover-open { opacity: 0; } }
+
+  /* Realce al llegar a un café desde el buscador */
+  .tarjeta.realce { animation: realce 1.6s var(--ease); }
+  @keyframes realce { 0%, 60% { box-shadow: 0 0 0 4px theme("colors.cafe.claro"); border-radius: 1.5rem; } 100% { box-shadow: 0 0 0 4px transparent; } }
+  .rebote { animation: rebote .45s var(--ease-pop, cubic-bezier(.34, 1.45, .64, 1)); }
+  @keyframes rebote { 40% { transform: scale(1.35); } }
+  .entra { animation: entra .6s var(--ease) both; }
+  @keyframes entra { from { opacity: 0; transform: translateY(14px); } }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .001ms !important; animation-delay: 0s !important; transition-duration: .001ms !important; }
+}

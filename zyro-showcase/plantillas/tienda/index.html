@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Olmo · Café de especialidad recién tostado (plantilla de tienda online)</title>
+  <meta name="description" content="Plantilla de tienda online de Zyro para un tostadero de café de especialidad. Marca, productos y precios de ejemplo.">
+  <meta name="robots" content="noindex">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#FAF8F5">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%231A1A1A'/%3E%3Cpath d='M20 8c5.200 3.100 7.600 7.400 7.600 12S25.200 28.900 20 32c-5.200-3.100-7.600-7.400-7.600-12S14.800 11.100 20 8Z' fill='%23D9A36E'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://images.unsplash.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap">
+  <link rel="stylesheet" href="tailwind.css">
+</head>
+<body>
+  <a href="#cafes" class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-carbon focus:px-5 focus:py-3 focus:text-crema">Saltar al catálogo</a>
+
+  <!-- Franja de Zyro: igual que en el resto de plantillas -->
+  <div class="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 bg-black px-4 py-2.5 text-center text-[11px] font-semibold uppercase tracking-wider text-white sm:text-xs">
+    <span>Plantilla de tienda online de Zyro</span>
+    <span aria-hidden="true" class="hidden sm:inline">·</span>
+    <span class="font-normal normal-case tracking-normal text-white/70">Marca, productos y precios de ejemplo</span>
+    <a href="/#contacto" target="_top" data-contacto class="ml-2 text-cafe-claro transition hover:opacity-80">Quiero una tienda así →</a>
+  </div>
+
+  <!-- Barra superior -->
+  <p class="bg-arena px-4 py-2 text-center text-xs text-carbon/75">Envío gratis a partir de 35&nbsp;€</p>
+
+  <!-- Navbar -->
+  <header class="cabecera sticky top-0 z-30 border-b border-linea bg-crema/90 backdrop-blur">
+    <div class="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3 sm:gap-6 sm:px-6 lg:px-8">
+      <a href="#" class="al-buscar flex shrink-0 items-center gap-3" aria-label="Olmo, inicio">
+        <span data-logo class="shrink-0"></span>
+        <span class="font-serif text-[1.7rem] font-medium leading-none">Olmo</span>
+      </a>
+
+      <form id="buscador" class="buscador" role="search" autocomplete="off">
+        <label for="q" class="sr-only">Buscar café, origen o nota de cata</label>
+        <span class="shrink-0 text-carbon/50" data-icono="lupa"></span>
+        <input id="q" name="q" type="text" inputmode="search" enterkeyhint="search" placeholder="Buscar café o aroma"
+               role="combobox" aria-expanded="false" aria-controls="sugerencias" aria-autocomplete="list"
+               class="min-w-0 flex-1 bg-transparent py-3 text-[15px] placeholder:text-carbon/50 focus:outline-none">
+        <button id="q-borrar" type="button" hidden class="grid size-7 shrink-0 place-items-center rounded-full text-carbon/60 transition hover:bg-arena" aria-label="Borrar la búsqueda"><span data-icono="x"></span></button>
+        <ul id="sugerencias" role="listbox" aria-label="Sugerencias" hidden class="absolute inset-x-0 top-full z-40 mt-2 max-h-80 overflow-y-auto rounded-3xl border border-linea bg-white p-2 shadow-[0_20px_50px_-20px_rgba(26,26,26,.35)]"></ul>
+      </form>
+
+      <div class="flex shrink-0 items-center gap-2">
+        <a href="/#contacto" target="_top" class="icono-btn al-buscar hidden sm:grid" aria-label="Mi cuenta (demostración)"><span data-icono="usuario"></span></a>
+        <button id="abrir-cesta" type="button" class="icono-btn al-buscar" aria-haspopup="dialog" aria-label="Abrir la cesta">
+          <span data-icono="bolsa"></span>
+          <span id="cesta-contador" hidden class="absolute -right-1 -top-1 grid min-w-5 place-items-center rounded-full bg-cafe px-1.5 text-[11px] font-semibold leading-5 text-white ring-2 ring-crema">0</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero -->
+    <section class="mx-auto grid max-w-7xl gap-12 px-4 pb-14 pt-10 sm:px-6 sm:pt-14 lg:grid-cols-[1.1fr_.9fr] lg:items-center lg:gap-16 lg:px-8 lg:pb-24 lg:pt-20" aria-labelledby="titulo">
+      <div>
+        <p class="eyebrow">Tueste semanal en pequeños lotes</p>
+        <h1 id="titulo" class="mt-5 font-serif text-[2.9rem] font-medium leading-[1.04] sm:text-6xl lg:text-[4.25rem]">Café de especialidad, recién tostado y en su casa en 48&nbsp;horas.</h1>
+        <p class="mt-6 max-w-xl text-lg leading-[1.7] text-carbon/70">Cafés de origen seleccionados por temporada, en grano o molidos para su cafetera. Envío gratuito a partir de 35&nbsp;€.</p>
+
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a href="#cafes" class="btn btn-primario" data-ir-filtro="todos">Ver los cafés</a>
+          <a href="#cafes" class="btn btn-contorno" data-ir-filtro="packs">Packs de degustación</a>
+        </div>
+
+        <!-- Barra de confianza -->
+        <dl class="mt-12 grid grid-cols-3 divide-x divide-linea border-t border-linea pt-7">
+          <div class="flex flex-col-reverse justify-end gap-1 pr-3 sm:pr-6"><dt class="text-[13px] text-carbon/60 sm:text-sm">día de tueste</dt><dd class="whitespace-nowrap font-serif text-[1.5rem] leading-none sm:text-4xl">Lunes</dd></div>
+          <div class="flex flex-col-reverse justify-end gap-1 px-3 sm:px-6"><dt class="text-[13px] text-carbon/60 sm:text-sm">plazo de entrega</dt><dd class="whitespace-nowrap font-serif text-[1.5rem] leading-none sm:text-4xl">24–72&nbsp;h</dd></div>
+          <div class="flex flex-col-reverse justify-end gap-1 pl-3 sm:pl-6"><dt class="text-[13px] text-carbon/60 sm:text-sm">envío gratuito desde</dt><dd class="whitespace-nowrap font-serif text-[1.5rem] leading-none sm:text-4xl">35&nbsp;€</dd></div>
+        </dl>
+      </div>
+
+      <figure class="relative">
+        <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&q=75&w=1000" srcset="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&q=75&w=640 640w, https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&q=75&w=1000 1000w"
+             sizes="(min-width:1024px) 40vw, 92vw" width="1000" height="1000" fetchpriority="high" decoding="async"
+             alt="Tres personas brindando con tazas de café con arte latte"
+             class="aspect-[5/4] w-full rounded-[2rem] bg-arena object-cover sm:aspect-[4/3] lg:aspect-[4/5]">
+        <figcaption class="absolute inset-x-4 bottom-4 flex items-center gap-3 rounded-2xl bg-crema/95 px-4 py-3 shadow-lg backdrop-blur sm:inset-x-auto sm:left-5 sm:bottom-5 sm:max-w-xs">
+          <span class="grid size-10 shrink-0 place-items-center rounded-full bg-cafe/10 text-cafe" data-icono="camion"></span>
+          <span class="text-sm leading-snug"><span class="block text-xs text-carbon/60">Próximo tueste</span><strong class="font-medium" id="proximo-tueste">Lunes</strong></span>
+        </figcaption>
+      </figure>
+    </section>
+
+    <!-- Catálogo -->
+    <section id="cafes" class="mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8" aria-labelledby="titulo-cafes">
+      <div class="flex flex-col gap-6 border-t border-linea pt-14 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p class="eyebrow">Tueste de esta semana</p>
+          <h2 id="titulo-cafes" class="mt-3 font-serif text-4xl font-medium leading-tight sm:text-5xl">Elija su café</h2>
+        </div>
+        <div id="filtros" class="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:px-0" role="group" aria-label="Filtrar por tipo">
+          <button type="button" data-filtro="todos" aria-pressed="true" class="shrink-0 rounded-full border border-linea px-4 py-2 text-sm transition hover:border-carbon/50 aria-pressed:border-carbon aria-pressed:bg-carbon aria-pressed:text-crema">Todos</button>
+          <button type="button" data-filtro="filtro" aria-pressed="false" class="shrink-0 rounded-full border border-linea px-4 py-2 text-sm transition hover:border-carbon/50 aria-pressed:border-carbon aria-pressed:bg-carbon aria-pressed:text-crema">Para filtro</button>
+          <button type="button" data-filtro="espresso" aria-pressed="false" class="shrink-0 rounded-full border border-linea px-4 py-2 text-sm transition hover:border-carbon/50 aria-pressed:border-carbon aria-pressed:bg-carbon aria-pressed:text-crema">Para espresso</button>
+          <button type="button" data-filtro="packs" aria-pressed="false" class="shrink-0 rounded-full border border-linea px-4 py-2 text-sm transition hover:border-carbon/50 aria-pressed:border-carbon aria-pressed:bg-carbon aria-pressed:text-crema">Packs</button>
+        </div>
+      </div>
+      <p id="cuenta" class="mt-6 text-sm text-carbon/60" role="status" aria-live="polite"></p>
+      <div id="grid" class="mt-6 grid gap-x-6 gap-y-14 sm:grid-cols-2 lg:grid-cols-3"></div>
+      <div id="vacio" hidden class="mt-6 rounded-3xl bg-arena px-6 py-14 text-center">
+        <p class="font-serif text-2xl">No hay cafés con ese criterio</p>
+        <p class="mt-2 text-carbon/70">Pruebe con otro origen, una nota de cata o quite los filtros.</p>
+        <button id="vacio-quitar" type="button" class="btn btn-primario mt-6">Ver todos los cafés</button>
+      </div>
+    </section>
+
+    <!-- Suscripción -->
+    <section class="mx-auto max-w-7xl px-4 pb-20 sm:px-6 lg:px-8" aria-labelledby="titulo-susc">
+      <div class="grid gap-10 rounded-[2rem] bg-carbon p-8 text-crema sm:p-12 lg:grid-cols-[1fr_1.1fr] lg:items-center lg:gap-16 lg:p-16">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-[.18em] text-cafe-claro">Suscripción</p>
+          <h2 id="titulo-susc" class="mt-4 font-serif text-4xl font-medium leading-tight sm:text-5xl">Su café, siempre fresco y un 15&nbsp;% más barato.</h2>
+          <a href="#cafes" class="btn btn-claro mt-8" data-ir-filtro="todos">Elegir mi café</a>
+        </div>
+        <ul class="grid gap-6">
+          <li class="flex gap-4"><span class="mt-0.5 grid size-8 shrink-0 place-items-center rounded-full bg-crema/10 text-cafe-claro" data-icono="check"></span><span><strong class="block font-medium">Llega cuando lo necesita</strong><span class="text-crema/70">Cada 2, 4 o 6 semanas, con la molienda que haya elegido.</span></span></li>
+          <li class="flex gap-4"><span class="mt-0.5 grid size-8 shrink-0 place-items-center rounded-full bg-crema/10 text-cafe-claro" data-icono="check"></span><span><strong class="block font-medium">Sin permanencia</strong><span class="text-crema/70">Pause, cambie de café o cancele cuando quiera.</span></span></li>
+          <li class="flex gap-4"><span class="mt-0.5 grid size-8 shrink-0 place-items-center rounded-full bg-crema/10 text-cafe-claro" data-icono="check"></span><span><strong class="block font-medium">Tostado esa misma semana</strong><span class="text-crema/70">Cada envío sale del lote del lunes, nunca de almacén.</span></span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Origen -->
+    <section class="mx-auto max-w-7xl px-4 pb-24 sm:px-6 lg:px-8" aria-labelledby="titulo-origen">
+      <div class="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+        <img src="https://images.unsplash.com/photo-1442512595331-e89e73853f31?auto=format&fit=crop&q=70&w=1000" width="1000" height="750" loading="lazy" decoding="async"
+             alt="Café de filtro preparándose con un hervidor de cuello de cisne" class="aspect-[4/3] w-full rounded-[2rem] bg-arena object-cover">
+        <div>
+          <p class="eyebrow">Pequeños lotes, trato directo</p>
+          <h2 id="titulo-origen" class="mt-3 font-serif text-4xl font-medium leading-tight sm:text-5xl">Tostamos los lunes. Usted lo recibe esta semana.</h2>
+          <p class="mt-5 max-w-lg text-lg leading-[1.7] text-carbon/70">Elegimos pocos orígenes por temporada y los tostamos en lotes pequeños para que cada taza sepa a lo que es. Lo que pide antes del domingo sale del tueste del lunes y llega en 24–72&nbsp;horas.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-linea bg-arena/60">
+    <div class="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-10 sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
+      <div class="flex items-center gap-3"><span data-logo></span><span class="font-serif text-2xl">Olmo</span></div>
+      <p class="max-w-md text-sm text-carbon/60">Tostadero ficticio. Marca, productos y precios son de ejemplo para esta plantilla de tienda online de Zyro. © <span id="anio">2026</span></p>
+    </div>
+  </footer>
+
+  <!-- Carrito lateral -->
+  <dialog id="cesta" class="hoja hoja-lateral" aria-labelledby="cesta-titulo">
+    <div class="flex h-full flex-col bg-crema shadow-2xl">
+      <header class="flex items-center justify-between px-6 py-5">
+        <h2 id="cesta-titulo" class="font-serif text-2xl">Tu cesta</h2>
+        <button type="button" class="icono-btn" data-cerrar aria-label="Cerrar la cesta"><span data-icono="x"></span></button>
+      </header>
+      <div class="bg-arena/70 px-6 py-4">
+        <p id="envio-msg" class="flex items-center gap-2 text-sm" aria-live="polite"></p>
+        <div id="envio-barra" role="progressbar" aria-label="Progreso hacia el envío gratis" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" class="mt-3 h-2 overflow-hidden rounded-full bg-carbon/10">
+          <div id="envio-relleno" class="h-full w-0 rounded-full bg-cafe transition-[width] duration-700 ease-suave"></div>
+        </div>
+      </div>
+      <div class="flex-1 overflow-y-auto px-6">
+        <ul id="cesta-lineas" class="divide-y divide-linea"></ul>
+        <div id="cesta-vacia" class="flex h-full flex-col items-center justify-center py-16 text-center">
+          <span class="grid size-16 place-items-center rounded-full bg-arena text-carbon/60" data-icono="bolsa"></span>
+          <p class="mt-5 font-serif text-2xl">Su cesta está vacía</p>
+          <p class="mt-2 max-w-[16rem] text-sm text-carbon/60">Elija un café del tueste de esta semana y lo preparamos a su medida.</p>
+          <button id="cesta-vacia-ver" type="button" class="btn btn-primario mt-6">Ver los cafés</button>
+        </div>
+      </div>
+      <footer id="cesta-pie" class="border-t border-linea bg-crema px-6 py-5">
+        <dl id="cesta-totales" class="space-y-1.5 text-sm"></dl>
+        <button id="pagar" type="button" class="btn btn-primario mt-4 w-full">Finalizar compra</button>
+        <button id="cesta-seguir" type="button" class="mt-3 w-full text-center text-sm text-carbon/70 underline-offset-4 transition hover:text-carbon hover:underline">Seguir comprando</button>
+        <p class="mt-3 text-center text-xs text-carbon/50">Demostración · impuestos incluidos</p>
+      </footer>
+    </div>
+  </dialog>
+
+  <!-- Personalizar: molienda (y frecuencia en suscripciones) -->
+  <dialog id="personalizar" class="hoja hoja-centro" aria-labelledby="personalizar-titulo">
+    <form id="personalizar-form" class="max-h-[92dvh] overflow-y-auto rounded-t-[2rem] bg-crema p-6 shadow-2xl sm:rounded-[2rem] sm:p-8"></form>
+  </dialog>
+
+  <div id="aviso" popover="manual" role="status" class="bottom-5 left-1/2 right-auto top-auto m-0 -translate-x-1/2 rounded-full bg-carbon px-5 py-3 text-sm text-crema shadow-xl"></div>
+
+  <script src="datos.js"></script>
+  <script src="iconos.js"></script>
+  <script src="utilidades.js"></script>
+  <script src="carrito.js"></script>
+  <script src="productos.js"></script>
+  <script src="drawer.js"></script>
+  <script src="navbar.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
