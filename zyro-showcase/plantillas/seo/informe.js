@@ -1,224 +1,333 @@
+/* Informe mensual de SEO: pinta el panel a partir de window.INFORME.
+   Estructura: utilidades · KPI · resumen · evolución · tablas · mantenimiento · acciones · cabecera. */
 (function () {
-  var D = window.INFORME;
-  var NS = "http://www.w3.org/2000/svg";
-  var nf = new Intl.NumberFormat("es-ES");
-  var coma = function (n, d) { return n.toFixed(d).replace(".", ","); };
+  "use strict";
+
+  var D = window.INFORME, S = D.serie, ico = window.icono, G = window.Graficos;
   var $ = function (id) { return document.getElementById(id); };
-  var actual = "septiembre";
 
-  function el(nombre, attrs, texto) {
-    var e = document.createElement(nombre);
-    Object.keys(attrs || {}).forEach(function (k) { e.setAttribute(k, attrs[k]); });
-    if (texto != null) e.textContent = texto;
-    return e;
+  /* ---------- Utilidades ---------- */
+  var nf = new Intl.NumberFormat("es-ES");
+  var N = function (n) { return nf.format(n); };
+  var dec = function (n, d) { return Number(n).toFixed(d).replace(".", ","); };
+  var esc = function (s) {
+    return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; });
+  };
+  var plano = function (s) { return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase(); };
+  var suma = function (a, f) { return a.reduce(function (t, x) { return t + f(x); }, 0); };
+
+  S.ctr = S.clics.map(function (c, i) { return c / S.impresiones[i] * 100; });
+
+  var estado = { mes: "septiembre", evo: null };
+  var tablas = {
+    busq: { q: "", campo: "clics", dir: "desc" },
+    pag: { q: "", campo: "clics", dir: "desc" }
+  };
+
+  var esOportunidad = function (p) { return p > 10 && p <= D.oportunidadMax; };
+  var claseTop = function (p) { return p <= 3 ? "b-verde" : p <= 10 ? "b-azul" : "b-gris"; };
+  var badgePos = function (p) { return '<span class="badge ' + claseTop(p) + '">' + dec(p, 1) + "</span>"; };
+
+  /* ---------- KPI ---------- */
+  var KPIS = [
+    { id: "clics", nombre: "Clics desde Google", icono: "mouse", fmt: N,
+      ayuda: "Las veces que alguien vio tu web en Google y entró en ella. Son visitas reales." },
+    { id: "impresiones", nombre: "Impresiones", icono: "eye", fmt: N,
+      ayuda: "Las veces que tu web apareció en los resultados de Google, aunque nadie llegara a pulsar." },
+    { id: "posicion", nombre: "Posición media", icono: "target", fmt: function (v) { return dec(v, 1); }, invertido: true,
+      ayuda: "El puesto medio en el que sales en Google. Cuanto más bajo el número, mejor: el 1 es el primer resultado." },
+    { id: "solicitudes", nombre: "Solicitudes de presupuesto", icono: "file-text", fmt: String,
+      ayuda: "Personas que han pedido presupuesto desde la web. Son clientes potenciales." }
+  ];
+
+  function pintarKpis(i) {
+    var mesAnterior = D.etiquetasLargas[i - 1].split(" ")[0];
+    $("kpis").innerHTML = KPIS.map(function (k) {
+      var v = S[k.id], act = v[i], prev = v[i - 1], mejor, texto;
+      if (k.id === "posicion") { mejor = prev - act >= 0; texto = dec(Math.abs(prev - act), 1) + " puestos"; }
+      else if (k.id === "solicitudes") { mejor = act >= prev; texto = (act >= prev ? "+" : "−") + Math.abs(act - prev); }
+      else { var p = Math.round((act / prev - 1) * 100); mejor = p >= 0; texto = (p >= 0 ? "+" : "−") + Math.abs(p) + " %"; }
+      var serie = v.slice(Math.max(0, i - 5), i + 1);
+      return '<article class="kpi">' +
+        '<div class="kpi-cab"><span class="kpi-ico">' + ico(k.icono, 18) + "</span>" +
+        '<span class="kpi-nombre">' + k.nombre + "</span>" +
+        '<button type="button" class="info" aria-describedby="ayuda-' + k.id + '" aria-label="¿Qué significa «' + k.nombre + '»?">' + ico("info", 16) + "</button>" +
+        '<span class="ayuda" role="tooltip" id="ayuda-' + k.id + '">' + k.ayuda + "</span></div>" +
+        '<div class="kpi-valor">' + k.fmt(act) + "</div>" +
+        '<div class="kpi-pie"><div><span class="delta ' + (mejor ? "ok" : "mal") + '">' +
+        ico(mejor ? "arrow-up" : "arrow-down", 13) + texto + '</span><span class="vs">frente a ' + mesAnterior.toLowerCase() + "</span></div>" +
+        G.sparkline(serie, { id: "sp-" + k.id, invertido: k.invertido, malo: !mejor }) + "</div></article>";
+    }).join("");
   }
 
-  function pastilla(delta, texto) {
-    return el("span", { "class": "delta" + (delta < 0 ? " baja" : "") }, (delta < 0 ? "↓ " : delta > 0 ? "↑ " : "") + texto);
+  /* ---------- Resumen del mes (insight) ----------
+     Aquí se compone con plantillas a partir de los datos. En producción este texto vendría de una API o de un modelo de lenguaje. */
+  function pintarInsight(i, info) {
+    var dPos = S.posicion[i - 1] - S.posicion[i];
+    var top = info.paginas.slice().sort(function (a, b) { return b.clics - a.clics; })[0];
+    var cuota = Math.round(top.clics / S.clics[i] * 100);
+    var op = info.busquedas.filter(function (b) { return esOportunidad(b.pos); }).sort(function (a, b) { return a.pos - b.pos; })[0];
+
+    var t = (dPos >= 0 ? "Este mes has mejorado tu posición media en <strong>" : "Este mes tu posición media ha empeorado en <strong>") +
+      dec(Math.abs(dPos), 1) + " puestos</strong>, hasta el <strong>" + dec(S.posicion[i], 1) + "</strong>. " +
+      "La página <strong>«" + esc(top.titulo) + "»</strong> atrae el <strong>" + cuota + " %</strong> de los clics" +
+      (op ? ", y «" + esc(op.q) + "» está en la posición " + dec(op.pos, 1) + ", a un paso del Top 10." : ".");
+
+    $("insight").innerHTML =
+      '<div class="insight-cab"><span class="insight-ico">' + ico("sparkles", 18) + "</span>" +
+      '<h2 id="insight-titulo">Resumen de ' + info.nombre.toLowerCase() + '</h2><span class="etiqueta-ia">Resumen automático</span></div>' +
+      '<p class="insight-texto">' + t + "</p>" +
+      '<div class="sugerencia">' + ico("lightbulb", 18) + "<p><strong>Sugerencia.</strong> " + esc(info.sugerencia) + "</p></div>";
   }
 
-  function cifras(m) {
-    var lista = [
-      ["Clics desde Google", nf.format(m.clics), m.dClics, "+" + m.dClics + " %"],
-      ["Impresiones", nf.format(m.impresiones), m.dImpresiones, "+" + m.dImpresiones + " %"],
-      ["Posición media", coma(m.posicion, 1), m.dPosicion, coma(m.dPosicion, 1) + " puestos"],
-      ["Solicitudes de presupuesto", String(m.solicitudes), m.dSolicitudes, "+" + m.dSolicitudes + " frente al mes anterior"]
-    ];
-    var caja = $("cifras");
-    caja.textContent = "";
-    lista.forEach(function (c) {
-      var d = el("div", { "class": "cifra" });
-      d.appendChild(el("span", { "class": "cifra-nombre" }, c[0]));
-      d.appendChild(el("span", { "class": "cifra-valor" }, c[1]));
-      d.appendChild(pastilla(c[2], c[3]));
-      caja.appendChild(d);
+  /* ---------- Evolución ---------- */
+  function crearEvolucion(i) {
+    var pctFmt = function (v, d) { return dec(v, d) + " %"; };
+    estado.evo = G.evolucion($("evo"), {
+      etiquetas: D.etiquetas, etiquetasLargas: D.etiquetasLargas, activo: i,
+      series: { clics: S.clics, impresiones: S.impresiones, ctr: S.ctr },
+      metricas: {
+        clics: { nombre: "Clics", fmtEje: N, fmtTip: N },
+        impresiones: {
+          nombre: "Impresiones", fmtTip: N,
+          fmtEje: function (v) { return v >= 1000 ? (v / 1000) + " k" : String(v); }
+        },
+        ctr: {
+          nombre: "CTR", marcas: [1.5, 2, 2.5, 3],
+          fmtEje: function (v) { return pctFmt(v, 1); }, fmtTip: function (v) { return pctFmt(v, 2); }
+        }
+      }
+    });
+
+    var textos = {
+      clics: "Visitas que llegan desde Google cada mes",
+      impresiones: "Veces que tu web aparece en los resultados de Google",
+      ctr: "De cada 100 veces que apareces, cuántas personas entran"
+    };
+    var nombres = { clics: "Clics", impresiones: "Impresiones", ctr: "CTR" };
+    var actual = "clics";
+    var pintarSeg = function () {
+      $("metricas").innerHTML = Object.keys(nombres).map(function (k) {
+        return '<button type="button" data-metrica="' + k + '" aria-pressed="' + (k === actual) + '">' + nombres[k] + "</button>";
+      }).join("");
+      $("evo-sub").textContent = textos[actual];
+    };
+    pintarSeg();
+    $("metricas").addEventListener("click", function (e) {
+      var b = e.target.closest("button[data-metrica]");
+      if (!b) return;
+      actual = b.dataset.metrica;
+      estado.evo.metrica(actual);
+      pintarSeg();
+    });
+
+    // Tabla equivalente para lectores de pantalla
+    $("evo-tabla").innerHTML = "<caption>Clics, impresiones y CTR de los últimos 12 meses</caption>" +
+      "<thead><tr><th>Mes</th><th>Clics</th><th>Impresiones</th><th>CTR</th></tr></thead><tbody>" +
+      D.etiquetasLargas.map(function (m, j) {
+        return "<tr><td>" + m + "</td><td>" + N(S.clics[j]) + "</td><td>" + N(S.impresiones[j]) + "</td><td>" + pctFmt(S.ctr[j], 2) + "</td></tr>";
+      }).join("") + "</tbody>";
+  }
+
+  /* ---------- Tablas ---------- */
+  function ordenar(lista, t) {
+    var f = t.dir === "asc" ? 1 : -1;
+    return lista.slice().sort(function (a, b) { return (a[t.campo] - b[t.campo]) * f || b.clics - a.clics; });
+  }
+
+  function cabecera(t, columnas) {
+    return "<thead><tr>" + columnas.map(function (c) {
+      if (!c.campo) return '<th scope="col"' + (c.num ? ' class="num"' : "") + ">" + c.texto + "</th>";
+      var activa = t.campo === c.campo;
+      var sentido = activa ? (t.dir === "asc" ? "ascending" : "descending") : "none";
+      var flecha = activa ? ico(t.dir === "asc" ? "chevron-up" : "chevron-down", 14) : ico("arrow-up-down", 13);
+      return '<th scope="col" class="num" aria-sort="' + sentido + '"><button type="button" class="orden' + (activa ? " activa" : "") +
+        '" data-campo="' + c.campo + '">' + c.texto + flecha + "</button></th>";
+    }).join("") + "</tr></thead>";
+  }
+
+  function cambio(m) {
+    return m > 0 ? '<span class="cambio ok">' + ico("arrow-up", 13) + dec(m, 1) + "</span>" : '<span class="cambio igual">—</span>';
+  }
+
+  function pintarBusquedas(i, info) {
+    var t = tablas.busq, q = plano(t.q.trim());
+    var filas = ordenar(info.busquedas.filter(function (b) { return !q || plano(b.q).indexOf(q) > -1; }), t);
+    var cuerpo = filas.map(function (b) {
+      var aviso = esOportunidad(b.pos)
+        ? '<span class="oportunidad">' + ico("triangle-alert", 13) + "Cerca del Top 10</span>" : "";
+      return '<tr><td><span class="kw">' + esc(b.q) + "</span>" + aviso + '</td><td class="num">' + b.clics +
+        '</td><td class="num">' + badgePos(b.pos) + '</td><td class="num">' + cambio(b.mejora) + "</td></tr>";
+    }).join("") || '<tr><td colspan="4" class="vacio">Ninguna búsqueda coincide con «' + esc(t.q.trim()) + "».</td></tr>";
+
+    $("t-busq").innerHTML = "<caption class=\"solo-lectores\">Búsquedas que traen visitas, ordenables por clics y posición</caption>" +
+      cabecera(t, [{ texto: "Palabra clave" }, { texto: "Clics", campo: "clics", num: 1 }, { texto: "Posición", campo: "pos", num: 1 }, { texto: "Cambio", num: 1 }]) +
+      "<tbody>" + cuerpo + "</tbody>";
+    var otras = S.clics[i] - suma(info.busquedas, function (b) { return b.clics; });
+    $("pie-busq").textContent = "Mostrando " + filas.length + " de " + info.busquedas.length + " búsquedas · " + otras + " clics más vienen de búsquedas poco frecuentes";
+  }
+
+  function pintarPaginas(i, info) {
+    var t = tablas.pag, q = plano(t.q.trim());
+    var filas = ordenar(info.paginas.filter(function (p) { return !q || plano(p.url + " " + p.titulo).indexOf(q) > -1; }), t);
+    var cuerpo = filas.map(function (p) {
+      return '<tr><td><span class="kw">' + esc(p.titulo) + '</span><span class="url">' + esc(p.url) + '</span></td><td class="num">' + p.clics +
+        '</td><td class="num">' + badgePos(p.pos) + '</td><td class="num">' + Math.round(p.clics / S.clics[i] * 100) + " %</td></tr>";
+    }).join("") || '<tr><td colspan="4" class="vacio">Ninguna página coincide con «' + esc(t.q.trim()) + "».</td></tr>";
+
+    $("t-pag").innerHTML = "<caption class=\"solo-lectores\">Páginas con más visitas, ordenables por clics y posición</caption>" +
+      cabecera(t, [{ texto: "Página" }, { texto: "Clics", campo: "clics", num: 1 }, { texto: "Posición", campo: "pos", num: 1 }, { texto: "Tráfico", num: 1 }]) +
+      "<tbody>" + cuerpo + "</tbody>";
+    var otras = S.clics[i] - suma(info.paginas, function (p) { return p.clics; });
+    $("pie-pag").textContent = "Mostrando " + filas.length + " de " + info.paginas.length + " páginas · " + otras + " clics más van a otras páginas";
+  }
+
+  function conectarTabla(clave, idBuscador, idTabla, repintar) {
+    $(idBuscador).addEventListener("input", function (e) { tablas[clave].q = e.target.value; repintar(); });
+    $(idTabla).addEventListener("click", function (e) {
+      var b = e.target.closest("button[data-campo]");
+      if (!b) return;
+      var t = tablas[clave], campo = b.dataset.campo;
+      if (t.campo === campo) t.dir = t.dir === "asc" ? "desc" : "asc";
+      else { t.campo = campo; t.dir = campo === "pos" ? "asc" : "desc"; } // mejor posición = número menor
+      repintar();
+      var nuevo = $(idTabla).querySelector('button[data-campo="' + campo + '"]');
+      if (nuevo) nuevo.focus();
     });
   }
 
-  function resumen(m) {
-    var p = $("resumen");
-    p.textContent = "";
-    var t = function (s) { p.appendChild(document.createTextNode(s)); };
-    var b = function (s) { p.appendChild(el("strong", {}, s)); };
-    t("En " + m.nombre.toLowerCase() + " de 2026, la web recibió ");
-    b(nf.format(m.clics) + " visitas desde Google");
-    t(" (+" + m.dClics + " % respecto al mes anterior) y ");
-    b(m.solicitudes + " solicitudes de presupuesto");
-    t(". Estuvo disponible el " + m.disponibilidad + " % del tiempo y todas las copias de seguridad se hicieron correctamente.");
+  /* ---------- Mantenimiento ---------- */
+  function anillo(frac, centro) {
+    var r = 40, c = 2 * Math.PI * r;
+    return '<div class="anillo"><svg viewBox="0 0 100 100" aria-hidden="true" focusable="false">' +
+      '<circle class="pista" cx="50" cy="50" r="' + r + '"/>' +
+      '<circle class="avance" cx="50" cy="50" r="' + r + '" stroke-dasharray="' + c.toFixed(1) + '" stroke-dashoffset="' + c.toFixed(1) +
+      '" data-final="' + (c * (1 - frac)).toFixed(1) + '" transform="rotate(-90 50 50)"/></svg><span>' + centro + "</span></div>";
   }
 
-  function cambio(v) {
-    if (!v) return el("span", { "class": "igual" }, "=");
-    return el("span", { "class": "sube" }, "↑ " + coma(v, 1));
-  }
+  function pintarMantenimiento(info) {
+    var m = info.mantenimiento, cumple = m.disponibilidad >= 99.9;
+    var c = m.copias, u = m.actualizaciones;
+    $("mant").innerHTML =
+      '<article class="mant-item"><div class="mant-cab"><span class="kpi-ico">' + ico("activity", 18) + "</span><h3>Web disponible</h3></div>" +
+      '<div class="mant-cuerpo">' + anillo(m.disponibilidad / 100, dec(m.disponibilidad, 2) + " %") +
+      "<div><p>" + m.minutosCaidos + " minutos sin servicio en todo el mes.</p>" +
+      '<span class="estado ' + (cumple ? "ok" : "mal") + '">' + ico("shield-check", 14) + (cumple ? "Objetivo del 99,9 % cumplido" : "Por debajo del objetivo") + "</span></div></div></article>" +
 
-  function busquedas(m) {
-    var tb = $("busquedas");
-    tb.textContent = "";
-    m.busquedas.forEach(function (f) {
-      var tr = el("tr");
-      tr.appendChild(el("td", {}, f[0]));
-      tr.appendChild(el("td", { "class": "num" }, String(f[1])));
-      tr.appendChild(el("td", { "class": "num" }, coma(f[2], 1)));
-      var td = el("td", { "class": "num" });
-      td.appendChild(cambio(f[3]));
-      tr.appendChild(td);
-      tb.appendChild(tr);
-    });
-    var o = el("tr", { "class": "otras" });
-    o.appendChild(el("td", {}, "Otras búsquedas"));
-    o.appendChild(el("td", { "class": "num" }, String(m.otrasBusquedas)));
-    o.appendChild(el("td", { "class": "num" }, "–"));
-    o.appendChild(el("td", { "class": "num" }, ""));
-    tb.appendChild(o);
-  }
+      '<article class="mant-item"><div class="mant-cab"><span class="kpi-ico">' + ico("hard-drive", 18) + "</span><h3>Copias de seguridad</h3></div>" +
+      '<div class="mant-cuerpo">' + anillo(c[0] / c[1], c[0] + "/" + c[1]) +
+      "<div><p>Copias diarias hechas y comprobadas.</p>" +
+      '<span class="estado ok">' + ico("check", 14) + "Ninguna copia fallida</span></div></div></article>" +
 
-  function paginas(m) {
-    var tb = $("paginas");
-    tb.textContent = "";
-    m.paginas.forEach(function (f) {
-      var tr = el("tr");
-      var td = el("td");
-      td.appendChild(el("span", { "class": "ruta" }, f[0]));
-      td.appendChild(el("span", { "class": "nota" }, f[1]));
-      tr.appendChild(td);
-      tr.appendChild(el("td", { "class": "num" }, String(f[2])));
-      tr.appendChild(el("td", { "class": "num" }, coma(f[3], 1)));
-      tb.appendChild(tr);
+      '<article class="mant-item"><div class="mant-cab"><span class="kpi-ico">' + ico("refresh-cw", 18) + "</span><h3>Actualizaciones</h3></div>" +
+      '<div class="mant-cuerpo mant-barra"><div class="barra-dato"><b>' + u[0] + '</b> de ' + u[1] + " aplicadas</div>" +
+      '<div class="barra" role="progressbar" aria-valuemin="0" aria-valuemax="' + u[1] + '" aria-valuenow="' + u[0] + '" aria-label="Actualizaciones aplicadas">' +
+      '<span data-final="' + Math.round(u[0] / u[1] * 100) + '" style="width:0"></span></div>' +
+      "<p>Gestor de contenidos y complementos al día.</p></div></article>";
+
+    // Animación de entrada: se parte de vacío y se pasa al valor final en el siguiente fotograma
+    requestAnimationFrame(function () {
+      Array.prototype.forEach.call(document.querySelectorAll(".avance"), function (e) { e.setAttribute("stroke-dashoffset", e.dataset.final); });
+      Array.prototype.forEach.call(document.querySelectorAll(".barra span"), function (e) { e.style.width = e.dataset.final + "%"; });
     });
   }
 
-  function mantenimiento(m) {
-    var caja = $("mantenimiento");
-    caja.textContent = "";
-    var tarjetas = [
-      ["Web disponible", m.disponibilidad + " %", m.minutosCaidos + " minutos sin servicio en todo el mes."],
-      ["Copias de seguridad", m.copias, "Copias diarias hechas y comprobadas."],
-      ["Actualizaciones", String(m.actualizaciones), "Gestor de contenidos y complementos al día."]
-    ];
-    tarjetas.forEach(function (t) {
-      var d = el("div", { "class": "tarea" });
-      d.appendChild(el("h3", {}, t[0]));
-      d.appendChild(el("div", { "class": "gran" }, t[1]));
-      d.appendChild(el("p", {}, t[2]));
-      caja.appendChild(d);
-    });
-    var ul = el("ul", { "class": "hecho" });
-    m.hecho.forEach(function (h) { ul.appendChild(el("li", {}, h)); });
-    var cont = el("div", { "class": "tarea", style: "grid-column: 1 / -1" });
-    cont.appendChild(el("h3", {}, "Lo que hemos hecho este mes"));
-    cont.appendChild(ul);
-    caja.appendChild(cont);
+  /* ---------- Acciones ---------- */
+  function pintarAcciones(info) {
+    $("hecho").innerHTML = info.hecho.map(function (h) {
+      return '<li><span class="marca hecho-ok" aria-label="Hecho">' + ico("check", 13) + '</span><div><span class="dia">' + esc(h.dia) + "</span><p>" + esc(h.texto) + "</p></div></li>";
+    }).join("");
+    $("prox-titulo").textContent = "Qué haremos en " + info.siguiente;
+    $("prox").innerHTML = info.proximo.map(function (p, j) {
+      var en = j === 0;
+      return '<li><span class="marca vacia" aria-hidden="true"></span><p>' + esc(p.texto) + '</p><span class="estado-tarea ' +
+        (en ? "en-curso" : "pronto") + '">' + (en ? "En curso" : "Próximamente") + "</span></li>";
+    }).join("");
   }
 
-  function proximo(m) {
-    $("proximo-titulo").textContent = "Qué haremos en " + m.siguiente;
-    var ul = $("proximo");
-    ul.textContent = "";
-    m.proximo.forEach(function (p) {
-      var li = el("li");
-      li.appendChild(el("span", {}, p[0]));
-      li.appendChild(el("span", {}, p[1]));
-      ul.appendChild(li);
-    });
-  }
-
-  function grafico(m) {
-    var caja = $("grafico");
-    var W = Math.max(caja.clientWidth || 760, 300), estrecho = W < 560;
-    var H = estrecho ? 210 : 220, x0 = 38, x1 = W - 16, y0 = H - 32, y1 = 14, max = 550;
-    var s = D.serie, n = s.clics.length;
-    var X = function (i) { return x0 + (x1 - x0) * i / (n - 1); };
-    var Y = function (v) { return y0 - (y0 - y1) * v / max; };
-    var svg = document.createElementNS(NS, "svg");
-    svg.setAttribute("viewBox", "0 0 " + W + " " + H);
-    svg.setAttribute("role", "img");
-    svg.setAttribute("aria-label", "Clics desde Google al mes, de " + s.primerMes + " a septiembre de 2026: de " + s.clics[0] + " a " + s.clics[n - 1] + ".");
-
-    var defs = document.createElementNS(NS, "defs");
-    defs.innerHTML = '<linearGradient id="relleno" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a3e635" stop-opacity=".55"/><stop offset="1" stop-color="#a3e635" stop-opacity="0"/></linearGradient>';
-    svg.appendChild(defs);
-
-    [0, 138, 275, 413, 550].forEach(function (t) {
-      var l = document.createElementNS(NS, "line");
-      l.setAttribute("x1", x0); l.setAttribute("x2", x1); l.setAttribute("y1", Y(t)); l.setAttribute("y2", Y(t));
-      l.setAttribute("class", "rejilla"); svg.appendChild(l);
-      var tx = document.createElementNS(NS, "text");
-      tx.setAttribute("x", x0 - 8); tx.setAttribute("y", Y(t) + 3); tx.setAttribute("text-anchor", "end");
-      tx.setAttribute("class", "eje"); tx.textContent = t; svg.appendChild(tx);
-    });
-
-    var puntos = s.clics.map(function (v, i) { return X(i).toFixed(1) + "," + Y(v).toFixed(1); });
-    var area = document.createElementNS(NS, "path");
-    area.setAttribute("d", "M" + X(0) + "," + y0 + " L" + puntos.join(" L") + " L" + X(n - 1) + "," + y0 + " Z");
-    area.setAttribute("class", "area"); svg.appendChild(area);
-    var linea = document.createElementNS(NS, "path");
-    linea.setAttribute("d", "M" + puntos.join(" L")); linea.setAttribute("class", "linea"); svg.appendChild(linea);
-
-    var ia = m.indice;
-    var guia = document.createElementNS(NS, "line");
-    guia.setAttribute("x1", X(ia)); guia.setAttribute("x2", X(ia)); guia.setAttribute("y1", Y(s.clics[ia])); guia.setAttribute("y2", y0);
-    guia.setAttribute("class", "guia"); svg.appendChild(guia);
-
-    s.clics.forEach(function (v, i) {
-      var c = document.createElementNS(NS, "circle");
-      c.setAttribute("cx", X(i)); c.setAttribute("cy", Y(v)); c.setAttribute("r", i === ia ? 6 : 3.5);
-      c.setAttribute("class", "punto" + (i === ia ? " activo" : ""));
-      var t = document.createElementNS(NS, "title");
-      t.textContent = s.etiquetas[i] + ": " + v + " clics";
-      c.appendChild(t); svg.appendChild(c);
-      if (estrecho && (n - 1 - i) % 2) return;
-      var mes = document.createElementNS(NS, "text");
-      mes.setAttribute("x", X(i)); mes.setAttribute("y", H - 8); mes.setAttribute("text-anchor", "middle");
-      mes.setAttribute("class", "eje" + (i === ia ? " mes-activo" : "")); mes.textContent = s.etiquetas[i];
-      svg.appendChild(mes);
-    });
-
-    var g = document.createElementNS(NS, "g");
-    g.setAttribute("class", "etiqueta");
-    var tx = Math.min(Math.max(X(ia), x0 + 20), x1 - 20);
-    var ty = Math.max(Y(s.clics[ia]) - 30, 2);
-    g.innerHTML = '<rect x="' + (tx - 22) + '" y="' + ty + '" width="44" height="20" rx="6"/><text x="' + tx + '" y="' + (ty + 14) + '">' + s.clics[ia] + "</text>";
-    svg.appendChild(g);
-
-    caja.textContent = "";
-    caja.appendChild(svg);
-  }
-
+  /* ---------- Cabecera, mes, tema ---------- */
   function pintar(clave) {
-    var m = D.meses[clave];
-    actual = clave;
-    resumen(m); cifras(m); grafico(m); busquedas(m); paginas(m); mantenimiento(m); proximo(m);
-    Array.prototype.forEach.call(document.querySelectorAll(".meses button"), function (b) {
+    var info = D.informes[clave], i = info.indice;
+    estado.mes = clave;
+    pintarInsight(i, info);
+    pintarKpis(i);
+    estado.evo.activo(i);
+    pintarBusquedas(i, info);
+    pintarPaginas(i, info);
+    pintarMantenimiento(info);
+    pintarAcciones(info);
+    Array.prototype.forEach.call(document.querySelectorAll("#meses button"), function (b) {
       var on = b.dataset.mes === clave;
-      b.setAttribute("aria-selected", on ? "true" : "false");
+      b.setAttribute("aria-selected", on);
       b.tabIndex = on ? 0 : -1;
     });
     $("panel").setAttribute("aria-labelledby", "tab-" + clave);
   }
 
-  var tabs = Array.prototype.slice.call(document.querySelectorAll(".meses button"));
-  tabs.forEach(function (b, i) {
-    b.addEventListener("click", function () { pintar(b.dataset.mes); });
-    b.addEventListener("keydown", function (e) {
+  function iniciarMeses() {
+    var claves = Object.keys(D.informes);
+    $("meses").innerHTML = claves.map(function (k) {
+      return '<button type="button" role="tab" id="tab-' + k + '" data-mes="' + k + '" aria-selected="false" tabindex="-1">' + D.informes[k].nombre + "</button>";
+    }).join("");
+    $("meses").addEventListener("click", function (e) {
+      var b = e.target.closest("button[data-mes]");
+      if (!b) return;
+      pintar(b.dataset.mes);
+      try { history.replaceState(null, "", "#" + b.dataset.mes); } catch (x) { /* en un iframe puede no estar permitido */ }
+    });
+    $("meses").addEventListener("keydown", function (e) {
       var d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
       if (!d) return;
       e.preventDefault();
-      var s = tabs[(i + d + tabs.length) % tabs.length];
-      s.focus(); pintar(s.dataset.mes);
+      var k = claves.indexOf(estado.mes), sig = claves[(k + d + claves.length) % claves.length];
+      pintar(sig);
+      $("tab-" + sig).focus();
     });
+  }
+
+  function iniciarTema() {
+    var boton = $("tema");
+    var aplicar = function () {
+      var oscuro = document.documentElement.dataset.tema === "dark";
+      boton.innerHTML = ico(oscuro ? "sun" : "moon", 18);
+      boton.setAttribute("aria-pressed", oscuro);
+      boton.setAttribute("aria-label", oscuro ? "Cambiar a modo claro" : "Cambiar a modo oscuro");
+      boton.title = oscuro ? "Modo claro" : "Modo oscuro";
+    };
+    boton.addEventListener("click", function () {
+      var nuevo = document.documentElement.dataset.tema === "dark" ? "light" : "dark";
+      document.documentElement.dataset.tema = nuevo;
+      try { localStorage.setItem("zyro-tema", nuevo); } catch (e) { /* sin almacenamiento: vale solo para esta visita */ }
+      aplicar();
+    });
+    aplicar();
+  }
+
+  /* ---------- Arranque ---------- */
+  Array.prototype.forEach.call(document.querySelectorAll("[data-icono]"), function (e) {
+    e.insertAdjacentHTML("afterbegin", ico(e.dataset.icono, e.tagName === "BUTTON" ? 16 : 17));
   });
-  var ancho = 0, tic;
-  window.addEventListener("resize", function () {
-    clearTimeout(tic);
-    tic = setTimeout(function () {
-      var w = $("grafico").clientWidth;
-      if (Math.abs(w - ancho) > 1) { ancho = w; grafico(D.meses[actual]); }
-    }, 120);
-  });
-  $("pdf").addEventListener("click", function () { window.print(); });
+  $("dominio").innerHTML = ico("globe", 14) + D.dominio;
+  $("agencia").innerHTML = ico("sparkles", 13) + "Informe generado por <strong>" + esc(D.agencia) + "</strong>";
   Array.prototype.forEach.call(document.querySelectorAll("[data-contacto]"), function (a) { a.setAttribute("href", D.contacto); });
 
+  iniciarMeses();
+  iniciarTema();
+  crearEvolucion(D.informes[estado.mes].indice);
+  conectarTabla("busq", "q-busq", "t-busq", function () { pintarBusquedas(D.informes[estado.mes].indice, D.informes[estado.mes]); });
+  conectarTabla("pag", "q-pag", "t-pag", function () { pintarPaginas(D.informes[estado.mes].indice, D.informes[estado.mes]); });
+
+  $("pdf").addEventListener("click", function () { window.print(); });
+
+  // El gráfico se ajusta al ancho disponible
+  if (window.ResizeObserver) {
+    var anchoPrevio = 0;
+    new ResizeObserver(function () {
+      var w = $("evo").clientWidth;
+      if (Math.abs(w - anchoPrevio) > 1) { anchoPrevio = w; estado.evo.redibujar(); }
+    }).observe($("evo"));
+  }
+
   var pedido = (location.hash || "").replace("#", "");
-  pintar(D.meses[pedido] ? pedido : actual);
+  pintar(D.informes[pedido] ? pedido : estado.mes);
 })();

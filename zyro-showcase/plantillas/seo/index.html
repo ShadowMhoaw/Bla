@@ -1,91 +1,144 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" data-tema="light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Informe mensual de SEO · Reformas Nova (ejemplo)</title>
   <meta name="description" content="Plantilla de informe mensual de SEO y mantenimiento de Zyro. Web, cliente y cifras de ejemplo.">
   <meta name="robots" content="noindex">
+  <meta name="color-scheme" content="light dark">
   <link rel="icon" href="data:,">
+  <script src="tema.js"></script>
   <link rel="stylesheet" href="estilos.css">
 </head>
 <body>
   <div class="franja">
     <span>Plantilla de SEO y mantenimiento de Zyro</span>
     <span class="franja-sep">·</span>
-    <span>Web, cliente y cifras de ejemplo</span>
+    <span class="franja-nota">Web, cliente y cifras de ejemplo</span>
     <a href="#" data-contacto target="_top">Quiero este servicio →</a>
   </div>
 
-  <main class="informe" id="informe">
-    <header class="cabecera">
-      <div>
-        <p class="sobretitulo">Informe mensual · SEO y mantenimiento</p>
-        <h1>Reformas Nova</h1>
-        <p class="dominio">↗ reformasnova.example</p>
-      </div>
-      <div class="acciones">
-        <div class="meses" role="tablist" aria-label="Mes del informe">
-          <button role="tab" id="tab-julio" data-mes="julio" aria-selected="false" tabindex="-1">Julio</button>
-          <button role="tab" id="tab-agosto" data-mes="agosto" aria-selected="false" tabindex="-1">Agosto</button>
-          <button role="tab" id="tab-septiembre" data-mes="septiembre" aria-selected="true">Septiembre</button>
+  <div class="app">
+    <!-- Cabecera: identidad del cliente, selector de mes, PDF y tema -->
+    <header class="cab">
+      <div class="cab-id">
+        <span class="monograma" aria-hidden="true">RN</span>
+        <div>
+          <p class="eyebrow">Informe mensual · SEO y mantenimiento</p>
+          <h1>Reformas Nova</h1>
+          <p class="cab-meta">
+            <span class="dominio" id="dominio"></span>
+            <span class="badge-agencia" id="agencia"></span>
+          </p>
         </div>
-        <button class="boton-pdf" type="button" id="pdf">Descargar PDF</button>
+      </div>
+
+      <div class="cab-acciones">
+        <div class="tabs" role="tablist" aria-label="Mes del informe" id="meses"></div>
+        <button class="boton" type="button" id="pdf" data-icono="download">Descargar PDF</button>
+        <button class="boton-icono" type="button" id="tema" aria-pressed="false"></button>
       </div>
     </header>
 
-    <div id="panel" role="tabpanel" aria-live="polite">
-      <p class="resumen" id="resumen"></p>
+    <main id="panel" role="tabpanel" aria-live="polite">
+      <!-- Resumen ejecutivo en lenguaje natural -->
+      <section class="insight" id="insight" aria-labelledby="insight-titulo"></section>
 
-      <section class="cifras" id="cifras" aria-label="Cifras del mes"></section>
+      <!-- KPI -->
+      <section class="kpis" id="kpis" aria-label="Cifras del mes"></section>
 
-      <section class="bloque">
-        <div class="bloque-cab">
-          <h2>Clics desde Google, últimos 12 meses</h2>
-          <span class="leyenda"><i></i>Clics al mes</span>
+      <!-- Evolución -->
+      <section class="tarjeta" aria-labelledby="evo-titulo">
+        <div class="tarjeta-cab">
+          <div>
+            <h2 id="evo-titulo">Evolución de los últimos 12 meses</h2>
+            <p class="sub" id="evo-sub"></p>
+          </div>
+          <div class="segmentos" id="metricas" role="group" aria-label="Métrica del gráfico"></div>
         </div>
-        <div class="grafico" id="grafico"></div>
+        <div class="evo" id="evo" tabindex="0" role="group"
+             aria-label="Gráfico de evolución. Usa las flechas izquierda y derecha para ver cada mes."></div>
+        <table class="solo-lectores" id="evo-tabla"></table>
       </section>
 
-      <div class="dos-columnas">
-        <section class="bloque">
-          <div class="bloque-cab"><h2>Búsquedas que traen visitas</h2></div>
-          <div class="tabla-caja">
-            <table>
-              <thead><tr><th>Búsqueda</th><th class="num">Clics</th><th class="num">Posición</th><th class="num">Cambio</th></tr></thead>
-              <tbody id="busquedas"></tbody>
-            </table>
+      <!-- Tablas -->
+      <div class="dos-col">
+        <section class="tarjeta" aria-labelledby="busq-titulo">
+          <div class="tarjeta-cab">
+            <div>
+              <h2 id="busq-titulo">Búsquedas que traen visitas</h2>
+              <p class="sub">Lo que escribe la gente en Google para llegar a tu web</p>
+            </div>
           </div>
+          <label class="buscador">
+            <span data-icono="search"></span>
+            <input type="search" id="q-busq" placeholder="Filtrar por palabra clave" autocomplete="off" aria-label="Filtrar búsquedas por palabra clave">
+          </label>
+          <div class="leyenda-pos" aria-label="Significado de los colores de la posición">
+            <span class="badge b-verde">Top 3</span><span class="badge b-azul">Top 4-10</span><span class="badge b-gris">Más allá</span>
+          </div>
+          <div class="tabla-caja"><table id="t-busq"></table></div>
+          <p class="tabla-pie" id="pie-busq"></p>
         </section>
 
-        <section class="bloque">
-          <div class="bloque-cab"><h2>Páginas con más visitas</h2></div>
-          <div class="tabla-caja">
-            <table>
-              <thead><tr><th>Página</th><th class="num">Clics</th><th class="num">Posición</th></tr></thead>
-              <tbody id="paginas"></tbody>
-            </table>
+        <section class="tarjeta" aria-labelledby="pag-titulo">
+          <div class="tarjeta-cab">
+            <div>
+              <h2 id="pag-titulo">Páginas con más visitas</h2>
+              <p class="sub">Qué partes de tu web atraen más clientes desde Google</p>
+            </div>
           </div>
+          <label class="buscador">
+            <span data-icono="search"></span>
+            <input type="search" id="q-pag" placeholder="Filtrar por página o dirección" autocomplete="off" aria-label="Filtrar páginas por nombre o dirección">
+          </label>
+          <div class="leyenda-pos" aria-hidden="true">
+            <span class="badge b-verde">Top 3</span><span class="badge b-azul">Top 4-10</span><span class="badge b-gris">Más allá</span>
+          </div>
+          <div class="tabla-caja"><table id="t-pag"></table></div>
+          <p class="tabla-pie" id="pie-pag"></p>
         </section>
       </div>
 
-      <section class="bloque">
-        <div class="bloque-cab"><h2>Mantenimiento del mes</h2></div>
-        <div class="mantenimiento" id="mantenimiento"></div>
+      <!-- Mantenimiento -->
+      <section class="tarjeta" aria-labelledby="mant-titulo">
+        <div class="tarjeta-cab">
+          <div>
+            <h2 id="mant-titulo">Mantenimiento de la web</h2>
+            <p class="sub">Que todo funcione, esté a salvo y al día</p>
+          </div>
+        </div>
+        <div class="mant" id="mant"></div>
       </section>
 
-      <section class="bloque proximo">
-        <div class="bloque-cab"><h2 id="proximo-titulo"></h2></div>
-        <ul id="proximo"></ul>
-      </section>
-    </div>
+      <!-- Acciones -->
+      <div class="dos-col">
+        <section class="tarjeta" aria-labelledby="hecho-titulo">
+          <div class="tarjeta-cab"><div>
+            <h2 id="hecho-titulo">Lo que hemos hecho este mes</h2>
+            <p class="sub">Trabajo realizado en tu web</p>
+          </div></div>
+          <ol class="linea" id="hecho"></ol>
+        </section>
+        <section class="tarjeta" aria-labelledby="prox-titulo">
+          <div class="tarjeta-cab"><div>
+            <h2 id="prox-titulo"></h2>
+            <p class="sub">Lo que viene a continuación</p>
+          </div></div>
+          <ul class="tareas" id="prox"></ul>
+        </section>
+      </div>
+    </main>
 
     <footer class="pie">
       <p>Informe de ejemplo de Zyro. Reformas Nova no existe: la marca, el dominio, las búsquedas y todas las cifras son inventados para enseñar cómo es el informe que recibe un cliente cada mes.</p>
     </footer>
-  </main>
+  </div>
 
   <script src="datos.js"></script>
+  <script src="iconos.js"></script>
+  <script src="graficos.js"></script>
   <script src="informe.js"></script>
 </body>
 </html>

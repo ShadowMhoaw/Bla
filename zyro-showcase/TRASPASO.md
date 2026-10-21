@@ -10,6 +10,8 @@ historial de la sesión «Configuración local web» (20/10/2026):
 
 - `plantillas/seo/`: **reconstrucción** de la plantilla de SEO (Reformas Nova) hecha desde una captura, no el código
   original. Al copiar tu proyecto, decide cuál de las dos versiones de `plantillas/seo/` te quedas.
+  Versión actual: panel "clean UI" en HTML, CSS y JS puros (sin build ni librerías), con modo oscuro, gráfico interactivo,
+  tablas con filtro y orden, y datos en `datos.js`.
 
 ## Estado a 20/10/2026
 - Showcase terminado y probado en local (`node servir.js 3410`).
