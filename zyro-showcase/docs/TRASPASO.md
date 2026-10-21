@@ -5,9 +5,13 @@ Esta carpeta NO es el proyecto completo. El código real está en el PC, en
 historial de la sesión «Configuración local web» (20/10/2026):
 
 - `README.md`: el README del proyecto tal y como lo escribió esa sesión.
-- `recuperado/enlazar-demos.js`: script con el que se desviaron los enlaces de la web principal (`localhost:3001`)
+- `docs/recuperado/enlazar-demos.js`: script con el que se desviaron los enlaces de la web principal (`localhost:3001`)
   al showcase local (`localhost:3410`) para hacer las capturas. No forma parte del proyecto.
 
+- `fuentes/automatizacion/` y `plantillas/automatizacion/`: **demo nueva** de automatización con IA (Taller Ronda) en React +
+  Tailwind + Framer Motion. El código está en `fuentes/automatizacion/` y el resultado compilado, que es lo que se publica,
+  en `plantillas/automatizacion/`. Ver `fuentes/automatizacion/README.md`. Si en tu PC ya tienes
+  `plantillas/automatizacion/`, decide con cuál de las dos te quedas antes de copiar.
 - `plantillas/seo/`: **reconstrucción** de la plantilla de SEO (Reformas Nova) hecha desde una captura, no el código
   original. Al copiar tu proyecto, decide cuál de las dos versiones de `plantillas/seo/` te quedas.
   Versión actual: panel "clean UI" en HTML, CSS y JS puros (sin build ni librerías), con modo oscuro, gráfico interactivo,
@@ -26,11 +30,11 @@ Desde la carpeta `zyro-showcase` (sin `.construccion/` ni `node_modules/`):
 
 ```
 git clone https://github.com/ShadowMhoaw/Bla
-git checkout ccr-c7ea1de1-fjxqnp
+git checkout ccr-a1275df8-b0ufp4
 ```
-Copia el contenido de `zyro-showcase` dentro de `Bla/zyro-showcase/` (sustituyendo estos archivos), y:
+Copia el contenido de `zyro-showcase` dentro de `Bla/zyro-showcase/` (sustituyendo estos archivos; la documentación de traspaso vive ahora en `docs/`), y:
 ```
 git add zyro-showcase
 git commit -m "Zyro Showcase completo"
-git push -u origin ccr-c7ea1de1-fjxqnp
+git push -u origin ccr-a1275df8-b0ufp4
 ```

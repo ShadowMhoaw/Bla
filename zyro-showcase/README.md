@@ -6,7 +6,18 @@ Las cinco webs de demostración por sector y una plantilla por servicio, en **un
 Sustituye a los cinco proyectos sueltos que había (`zyro-showcase-burger`, `-brasserie`, `-viajes`, `-juventud`,
 `-patisserie`). Sitio estático: no hay servidor ni paso de compilación en Vercel.
 
-## Qué hay
+## Estado de este repositorio
+Este repositorio **no contiene todavía el proyecto completo**. Está el código de dos plantillas; el resto (visor, las cinco
+webs por sector, tienda, SaaS, `vercel.json`, herramientas) está en el PC y falta subirlo. Detalle en `docs/TRASPASO.md`.
+
+| Carpeta | Contenido |
+| --- | --- |
+| `plantillas/seo/` | Informe mensual de SEO (HTML, CSS y JS puros, sin compilar) |
+| `plantillas/automatizacion/` | Demo de automatización con IA ya compilada (lo que se publica) |
+| `fuentes/automatizacion/` | Código fuente de esa demo (React + Vite + Tailwind + Framer Motion). `npm install && npm run build` |
+| `docs/` | Notas de traspaso y scripts recuperados que no forman parte del sitio |
+
+## Qué hay en el proyecto completo
 | Ruta | Contenido |
 | --- | --- |
 | `/` | Visor: portada con las 9 demostraciones y, con `?demo=<id>`, la demostración elegida bajo la barra con el menú, anterior/siguiente, tamaño escritorio/tableta/móvil y «abrir aparte» |

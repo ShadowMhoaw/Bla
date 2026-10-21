@@ -8,7 +8,7 @@ Tres canales: **Asistente Web**, **Correo Entrante** y **Llamadas con IA (Voz)**
 ```
 npm install
 npm run dev       # desarrollo
-npm run build     # genera dist/ (base './', se puede servir desde /plantillas/automatizacion/)
+npm run build     # compila a ../../plantillas/automatizacion/ (se sube al repo; Vercel solo sirve archivos estáticos)
 ```
 
 ## Estructura
@@ -33,6 +33,6 @@ Cada mensaje del bot, línea del log o frase de la llamada es un elemento con `s
 
 Para añadir un caso nuevo basta con una función en `scenarios/` que use `api.log([...])`, `api.say(texto)` o `api.habla(...)`.
 
-## Para integrarlo en el showcase
-El showcase es estático. Tras `npm run build`, copia `dist/` a `plantillas/automatizacion/` (sustituye a la versión actual
-si decides quedarte con esta).
+## Publicación
+El sitio es estático: la carpeta `plantillas/automatizacion/` contiene el resultado ya compilado y es la que se publica
+en `/plantillas/automatizacion/`. Tras cambiar algo en `src/`, ejecuta `npm run build` y sube también esa carpeta.
