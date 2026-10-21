@@ -4,6 +4,7 @@
    (los clics de búsquedas y páginas de cada mes nunca superan el total de ese mes).
    En producción este objeto vendría de Search Console o de una API, uno por cliente. */
 window.INFORME = {
+  cliente: "Reformas Nova",
   agencia: "Zyro",
   dominio: "reformasnova.example",
   contacto: "#", // Página de contacto de Zyro. Mientras sea «#», el botón de contacto lleva al formulario de este informe.

@@ -18,6 +18,7 @@
   // Primera letra en mayúscula (solo para mostrar: los filtros usan el texto original)
   var cap = function (s) { return s.charAt(0).toUpperCase() + s.slice(1); };
   var plano = function (s) { return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase(); };
+  var pc = function (n) { return n + "\u00a0%"; }; // número y % siempre juntos
   var suma = function (a, f) { return a.reduce(function (t, x) { return t + f(x); }, 0); };
 
   S.ctr = S.clics.map(function (c, i) { return c / S.impresiones[i] * 100; });
@@ -130,7 +131,7 @@
 
     var t = (dPos >= 0 ? "Este mes has mejorado tu posición media en <strong>" : "Este mes tu posición media ha empeorado en <strong>") +
       dec(Math.abs(dPos), 1) + " puestos</strong>, hasta el <strong>" + dec(S.posicion[i], 1) + "</strong>. " +
-      "La página <strong>«" + esc(top.titulo) + "»</strong> atrae el <strong>" + cuota + " %</strong> de los clics" +
+      "La página <strong>«" + esc(top.titulo) + "»</strong> atrae el <strong>" + pc(cuota) + "</strong> de los clics" +
       (op ? ", y «" + esc(op.q) + "» está en la posición " + dec(op.pos, 1) + ", a un paso del Top 10." : ".");
 
     $("insight").innerHTML =
@@ -205,7 +206,7 @@
       if (!c.campo) return '<th scope="col"' + (c.num ? ' class="num"' : "") + ">" + c.texto + "</th>";
       var activa = t.campo === c.campo;
       var sentido = activa ? (t.dir === "asc" ? "ascending" : "descending") : "none";
-      var flecha = activa ? ico(t.dir === "asc" ? "chevron-up" : "chevron-down", 14) : ico("arrow-up-down", 13);
+      var flecha = activa ? ico(t.dir === "asc" ? "chevron-up" : "chevron-down", 14) : ico("arrow-up-down", 14);
       return '<th scope="col" class="num" aria-sort="' + sentido + '"><button type="button" class="orden' + (activa ? " activa" : "") +
         '" data-campo="' + c.campo + '">' + c.texto + flecha + "</button></th>";
     }).join("") + "</tr></thead>";
@@ -278,19 +279,19 @@
     var m = info.mantenimiento, cumple = m.disponibilidad >= 99.9;
     var c = m.copias, u = m.actualizaciones, falladas = c[1] - c[0];
     var textoCaida = m.minutosCaidos < 30
-      ? "Solo " + m.minutosCaidos + " minutos sin servicio en todo el mes."
-      : "Hubo " + m.minutosCaidos + " minutos sin servicio por una incidencia.";
+      ? "Solo " + m.minutosCaidos + " minutos sin servicio en todo el mes. Objetivo: " + pc("99,9") + "."
+      : "Hubo " + m.minutosCaidos + " minutos sin servicio por una incidencia. Objetivo: " + pc("99,9") + ".";
     $("mant").innerHTML =
       '<article class="mant-item"><div class="mant-cab"><span class="kpi-ico">' + ico("activity", 18) + "</span><h3>Web disponible</h3></div>" +
-      '<div class="mant-cuerpo">' + anillo(m.disponibilidad / 100, dec(m.disponibilidad, 2) + " %") +
+      '<div class="mant-cuerpo">' + anillo(m.disponibilidad / 100, pc(dec(m.disponibilidad, 2))) +
       "<div><p>" + textoCaida + "</p>" +
-      '<span class="estado ' + (cumple ? "ok" : "mal") + '">' + ico("shield-check", 14) + (cumple ? "Objetivo del 99,9 % cumplido" : "Por debajo del objetivo del 99,9 %") + "</span></div></div></article>" +
+      '<span class="estado ' + (cumple ? "ok" : "mal") + '">' + ico("shield-check", 13) + (cumple ? "Objetivo cumplido" : "Bajo el objetivo") + "</span></div></div></article>" +
 
       '<article class="mant-item"><div class="mant-cab"><span class="kpi-ico">' + ico("hard-drive", 18) + "</span><h3>Copias de seguridad</h3></div>" +
       '<div class="mant-cuerpo">' + anillo(c[0] / c[1], c[0] + "/" + c[1]) +
-      "<div><p>Copias diarias hechas y comprobadas.</p>" +
-      '<span class="estado ' + (falladas ? "mal" : "ok") + '">' + ico(falladas ? "refresh-cw" : "check", 14) +
-      (falladas ? falladas + " copia fallida, repetida al momento" : "Ninguna copia fallida") + "</span></div></div></article>" +
+      "<div><p>" + (falladas ? (falladas === 1 ? "Una copia falló y se repitió al momento." : falladas + " copias fallaron y se repitieron al momento.") : "Copias diarias hechas y comprobadas.") + "</p>" +
+      '<span class="estado ' + (falladas ? "mal" : "ok") + '">' + ico(falladas ? "refresh-cw" : "check", 13) +
+      (falladas ? (falladas === 1 ? "1 copia fallida" : falladas + " copias fallidas") : "Ninguna copia fallida") + "</span></div></div></article>" +
 
       '<article class="mant-item"><div class="mant-cab"><span class="kpi-ico">' + ico("refresh-cw", 18) + "</span><h3>Actualizaciones</h3></div>" +
       '<div class="mant-cuerpo mant-barra"><div class="barra-dato">Aplicadas: <b>' + u[0] + '</b> de ' + u[1] + "</div>" +
@@ -332,7 +333,7 @@
     pintarMantenimiento(info, primera);
     pintarAcciones(info, primera);
     pintarSelector(primera);
-    if (estado.listo && $("mensaje")) pintarContacto(false); // solo si se está escribiendo; la vista previa no se pisa
+    if (estado.listo) actualizarContacto();
     estado.listo = true;
   }
 
@@ -434,15 +435,22 @@
      En el producto real el mensaje llegaría al equipo de Zyro junto con el mes que se está viendo.
      Aquí no se envía nada: se enseña la vista previa de cómo lo recibiría el equipo. */
   var borrador = "";
-  function pintarContacto(enfocar) {
-    var info = D.informes[estado.mes];
+  var borradorAuto = false; // true mientras el borrador sea solo texto puesto por los atajos (y no escrito a mano)
+
+  // Atajos del mes que se está viendo; cada uno trae el texto que se añade al mensaje
+  function atajos(info) {
     var op = info.busquedas.filter(function (b) { return esOportunidad(b.pos); }).sort(function (a, b) { return a.pos - b.pos; })[0];
-    var temas = [
-      { etiqueta: op ? "Subir «" + cap(op.q) + "» al Top 10" : "Mejorar una palabra clave", texto: op ? "Quiero subir «" + op.q + "» al Top 10." : "Quiero mejorar una palabra clave." },
-      { etiqueta: "Una duda sobre el informe", texto: "Tengo una duda sobre este informe." },
+    return [
+      op ? { etiqueta: "Subir «" + op.q + "» al Top 10", texto: "Quiero subir «" + op.q + "» al Top 10 (ahora está en la posición " + dec(op.pos, 1) + ")." }
+         : { etiqueta: "Mejorar una palabra clave", texto: "Quiero mejorar una palabra clave." },
+      { etiqueta: "Una duda sobre el informe", texto: "Tengo una duda sobre el informe de " + info.nombre.toLowerCase() + " de " + info.anio + "." },
       { etiqueta: "Pedir una mejora o una página nueva", texto: "Quiero pedir una mejora o una página nueva." },
       { etiqueta: "Hablar con una persona", texto: "Prefiero hablar con una persona de Zyro." }
     ];
+  }
+
+  function pintarContacto(enfocar) {
+    var temas = atajos(D.informes[estado.mes]);
     $("contacto-form").innerHTML =
       '<span class="etiqueta">¿Sobre qué quieres hablar?</span>' +
       '<div class="chips">' + temas.map(function (t, j) { return '<button type="button" class="chip" data-tema="' + j + '">' + esc(t.etiqueta) + "</button>"; }).join("") + "</div>" +
@@ -453,13 +461,16 @@
       '<p class="nota-demo">Demostración: en tu informe real, el mensaje llega a tu equipo de Zyro con el mes que estás viendo.</p></div>';
     var caja = $("mensaje");
     caja.value = borrador;
-    caja.addEventListener("input", function () { borrador = caja.value; $("error-mensaje").hidden = true; });
+    caja.addEventListener("input", function () { borrador = caja.value; borradorAuto = false; $("error-mensaje").hidden = true; });
     $("contacto-form").querySelector(".chips").addEventListener("click", function (e) {
       var b = e.target.closest(".chip");
       if (!b) return;
       var texto = temas[+b.dataset.tema].texto;
-      caja.value = caja.value.trim() ? caja.value.replace(/\s+$/, "") + "\n" + texto : texto;
+      if (borrador.indexOf(texto) > -1) { caja.focus(); return; }          // el mismo atajo no se añade dos veces
+      var vacio = !caja.value.trim();
+      caja.value = vacio ? texto : caja.value.replace(/\s+$/, "") + "\n" + texto;
       borrador = caja.value;
+      borradorAuto = vacio || borradorAuto;
       $("error-mensaje").hidden = true;
       caja.focus();
     });
@@ -467,17 +478,26 @@
     if (enfocar) caja.focus({ preventScroll: true });
   }
 
+  // Al cambiar de mes, un borrador hecho solo con atajos se descarta: hablaría de otro mes. Lo escrito a mano se conserva.
+  function actualizarContacto() {
+    if (!$("mensaje")) return; // se está viendo la vista previa; no se pisa
+    if (borradorAuto) { borrador = ""; borradorAuto = false; }
+    pintarContacto(false);
+  }
+
   function enviar() {
     var texto = $("mensaje").value.trim();
     if (texto.length < 3) { $("error-mensaje").hidden = false; $("mensaje").focus(); return; }
-    var info = D.informes[estado.mes];
+    var info = D.informes[estado.mes], i = info.indice;
     $("contacto-form").innerHTML =
       '<div class="vista-previa"><h3><span class="marca">' + ico("check", 13) + "</span>Así lo recibiría tu equipo de Zyro</h3>" +
-      '<div class="correo"><dl><dt>Cliente</dt><dd>Reformas Nova · ' + esc(D.dominio) + "</dd><dt>Informe</dt><dd>" + esc(info.nombre + " de " + info.anio) + "</dd></dl>" +
+      '<div class="correo"><dl><dt>Cliente</dt><dd>' + esc(D.cliente) + " · " + esc(D.dominio) + "</dd>" +
+      "<dt>Informe</dt><dd>" + esc(info.nombre + " de " + info.anio) + "</dd>" +
+      "<dt>Cifras</dt><dd>" + N(S.clics[i]) + " clics · posición media " + dec(S.posicion[i], 1) + "</dd></dl>" +
       "<blockquote>" + esc(texto) + "</blockquote></div>" +
       '<p class="nota-demo">Esto es una demostración: no se ha enviado nada. En tu informe real, tu equipo de Zyro recibiría este mensaje y te respondería.</p>' +
       '<div class="form-pie"><button type="button" class="boton" id="otro">Escribir otro mensaje</button></div></div>';
-    borrador = "";
+    borrador = ""; borradorAuto = false;
     $("otro").addEventListener("click", function () { pintarContacto(true); aparecer($("contacto-form"), ".etiqueta, .chips, label, textarea, .form-pie"); });
   }
 
@@ -517,7 +537,7 @@
 
   /* ---------- Arranque ---------- */
   Array.prototype.forEach.call(document.querySelectorAll("[data-icono]"), function (e) {
-    e.insertAdjacentHTML("afterbegin", ico(e.dataset.icono, e.tagName === "BUTTON" ? 16 : 17));
+    e.insertAdjacentHTML("afterbegin", ico(e.dataset.icono, +e.dataset.tam || 16));
   });
   $("dominio").innerHTML = ico("globe", 14) + D.dominio;
   $("agencia").innerHTML = ico("sparkles", 13) + "Informe generado por <strong>" + esc(D.agencia) + "</strong>";
@@ -530,7 +550,7 @@
   $("ir-contacto").addEventListener("click", irAContacto);
 
   // Entrada escalonada de la cabecera y las tarjetas (los KPI se escalonan solos)
-  [[".cab-id", 0], [".cab-acciones", 1], ["main > .insight", 2], ["main > .tarjeta", 7], ["main > .dos-col > .tarjeta", 8], ["main > .tarjeta ~ .tarjeta", 8]].forEach(function (par) {
+  [[".cab-id", 0], [".cab-acciones", 1], ["#tema", 1], ["main > .insight", 2], ["main > .tarjeta", 7], ["main > .dos-col > .tarjeta", 8], ["main > .tarjeta ~ .tarjeta", 8]].forEach(function (par) {
     Array.prototype.forEach.call(document.querySelectorAll(par[0]), function (e) { e.classList.add("entra"); e.style.setProperty("--i", par[1]); });
   });
 
