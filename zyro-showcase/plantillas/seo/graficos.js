@@ -36,10 +36,10 @@
     var d = pts.map(function (q, i) { return (i ? "L" : "M") + q[0].toFixed(1) + " " + q[1].toFixed(1); }).join(" ");
     var ult = pts[pts.length - 1];
     var area = d + " L" + ult[0].toFixed(1) + " " + h + " L" + pts[0][0].toFixed(1) + " " + h + " Z";
-    var color = o.malo ? "var(--rojo)" : "var(--acento)";
+    var color = o.malo ? "var(--baja-txt)" : "var(--acento)";
     return '<svg class="spark" viewBox="0 0 ' + w + " " + h + '" width="' + w + '" height="' + h + '" aria-hidden="true" focusable="false">' +
       '<defs><linearGradient id="' + o.id + '" x1="0" y1="0" x2="0" y2="1">' +
-      '<stop offset="0" style="stop-color:' + color + ';stop-opacity:.25"/><stop offset="1" style="stop-color:' + color + ';stop-opacity:0"/></linearGradient></defs>' +
+      '<stop offset="0" style="stop-color:' + color + ';stop-opacity:.14"/><stop offset="1" style="stop-color:' + color + ';stop-opacity:0"/></linearGradient></defs>' +
       '<path class="spark-area" d="' + area + '" fill="url(#' + o.id + ')"/>' +
       '<path class="spark-linea" pathLength="1" d="' + d + '" fill="none" stroke="' + color + '" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>' +
       '<circle class="spark-punto" cx="' + ult[0].toFixed(1) + '" cy="' + ult[1].toFixed(1) + '" r="2.5" fill="' + color + '"/></svg>';
@@ -88,7 +88,7 @@
 
       var s = '<svg class="' + (entrada ? "dibuja" : "") + '" viewBox="0 0 ' + W + " " + H + '" width="' + W + '" height="' + H + '" aria-hidden="true" focusable="false">' +
         '<defs><linearGradient id="g-evo" x1="0" y1="0" x2="0" y2="1">' +
-        '<stop offset="0" style="stop-color:var(--acento);stop-opacity:.22"/><stop offset="1" style="stop-color:var(--acento);stop-opacity:0"/></linearGradient></defs>';
+        '<stop offset="0" style="stop-color:var(--acento);stop-opacity:.13"/><stop offset="1" style="stop-color:var(--acento);stop-opacity:0"/></linearGradient></defs>';
 
       s += '<g class="ejes' + (ejesNuevos ? " ejes-nuevo" : "") + '">';
       f.ejes.forEach(function (t, j) {

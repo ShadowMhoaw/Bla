@@ -35,8 +35,28 @@
       </div>
 
       <div class="cab-acciones">
-        <div class="tabs" role="tablist" aria-label="Mes del informe" id="meses"></div>
+        <div class="selector-mes" id="selector">
+          <button class="paso" type="button" id="mes-ant" aria-label="Mes anterior" data-icono="chevron-left"></button>
+          <button class="mes-btn" type="button" id="mes-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="calendario">
+            <span data-icono="calendar"></span><span class="mes-texto" id="mes-texto"></span><span data-icono="chevron-down"></span>
+          </button>
+          <button class="paso" type="button" id="mes-sig" aria-label="Mes siguiente" data-icono="chevron-right"></button>
+
+          <div class="calendario" id="calendario" role="dialog" aria-label="Elegir el mes del informe" aria-hidden="true" inert>
+            <div class="cal-cab">
+              <button class="paso" type="button" id="anio-ant" aria-label="Año anterior" data-icono="chevron-left"></button>
+              <span class="cal-anio" id="cal-anio" aria-live="polite"></span>
+              <button class="paso" type="button" id="anio-sig" aria-label="Año siguiente" data-icono="chevron-right"></button>
+            </div>
+            <div class="cal-grid" id="cal-grid"></div>
+            <div class="cal-pie">
+              <span class="cal-nota">Los meses sin informe aparecen atenuados.</span>
+              <button class="enlace" type="button" id="ultimo">Ir al último</button>
+            </div>
+          </div>
+        </div>
         <button class="boton" type="button" id="pdf" data-icono="download">Descargar PDF</button>
+        <button class="boton boton-primario" type="button" id="ir-contacto" data-icono="message-circle">Contactar con Zyro</button>
         <button class="boton-icono" type="button" id="tema" aria-pressed="false"></button>
       </div>
     </header>
@@ -129,6 +149,20 @@
           <ul class="tareas" id="prox"></ul>
         </section>
       </div>
+
+      <!-- Contacto: el informe es del cliente, está siempre disponible y se puede consultar con Zyro desde aquí -->
+      <section class="tarjeta contacto" id="contacto" aria-labelledby="contacto-titulo">
+        <div class="contacto-info">
+          <h2 id="contacto-titulo">Tu SEO, a tu medida y siempre a mano</h2>
+          <p class="contacto-intro">Este informe se prepara para un solo negocio: el tuyo. Lo puedes abrir cuando quieras, no solo cuando llega cada mes.</p>
+          <ul class="ventajas">
+            <li><span class="kpi-ico" data-icono="clock"></span><div><strong>Siempre disponible</strong><span>Consulta tu posición en Google cualquier día y repasa cualquier mes del año.</span></div></li>
+            <li><span class="kpi-ico" data-icono="sliders"></span><div><strong>Hecho a tu medida</strong><span>Las palabras clave, las páginas y los avisos se eligen para tu negocio.</span></div></li>
+            <li><span class="kpi-ico" data-icono="trending-up"></span><div><strong>Para estudiarlo con calma</strong><span>Filtra, ordena y compara meses. Si algo no se entiende, nos lo preguntas aquí mismo.</span></div></li>
+          </ul>
+        </div>
+        <div class="contacto-form" id="contacto-form"></div>
+      </section>
     </main>
 
     <footer class="pie">

@@ -1,5 +1,6 @@
 /* Informe mensual de SEO: pinta el panel a partir de window.INFORME.
-   Estructura: utilidades · movimiento · KPI · resumen · evolución · tablas · mantenimiento · acciones · cabecera y tema. */
+   Estructura: utilidades · movimiento · KPI · resumen · evolución · tablas · mantenimiento · acciones ·
+   mes y calendario · contacto · tema · arranque. */
 (function () {
   "use strict";
 
@@ -20,15 +21,25 @@
   var suma = function (a, f) { return a.reduce(function (t, x) { return t + f(x); }, 0); };
 
   S.ctr = S.clics.map(function (c, i) { return c / S.impresiones[i] * 100; });
+  // Valor del mes anterior; el primer mes se compara con el mes de partida (septiembre de 2025)
+  var previo = function (k, i) { return i > 0 ? S[k][i - 1] : S.base[k]; };
 
-  var estado = { mes: "septiembre", evo: null, listo: false, mostrado: {} };
+  var MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+  var CORTOS = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+  var claves = Object.keys(D.informes).sort();
+  var ultima = claves[claves.length - 1];
+  var anios = claves.map(function (k) { return D.informes[k].anio; });
+  var anioMin = Math.min.apply(null, anios), anioMax = Math.max.apply(null, anios);
+  var etiquetaMes = function (k) { return D.informes[k].nombre + " " + D.informes[k].anio; };
+
+  var estado = { mes: ultima, anio: anioMax, evo: null, listo: false, mostrado: {} };
   var tablas = {
     busq: { q: "", campo: "clics", dir: "desc" },
     pag: { q: "", campo: "clics", dir: "desc" }
   };
 
   var esOportunidad = function (p) { return p > 10 && p <= D.oportunidadMax; };
-  var claseTop = function (p) { return p <= 3 ? "b-verde" : p <= 10 ? "b-azul" : "b-gris"; };
+  var claseTop = function (p) { return p <= 3 ? "b-top" : p <= 10 ? "b-medio" : "b-gris"; };
   var badgePos = function (p) { return '<span class="badge ' + claseTop(p) + '">' + dec(p, 1) + "</span>"; };
 
   /* ---------- Movimiento ---------- */
@@ -51,7 +62,7 @@
 
   // Coloca la píldora deslizante bajo la opción elegida de un control segmentado
   function pildora(cont, sinAnimar) {
-    var p = cont.querySelector(".pildora"), sel = cont.querySelector('[aria-selected="true"], [aria-pressed="true"]');
+    var p = cont.querySelector(".pildora"), sel = cont.querySelector('[aria-pressed="true"]');
     if (!p || !sel) return;
     if (sinAnimar) p.style.transition = "none";
     cont.style.setProperty("--x", sel.offsetLeft + "px");
@@ -81,13 +92,14 @@
   ];
 
   function pintarKpis(i, primera) {
-    var mesAnterior = D.nombresMes[i - 1].toLowerCase();
+    var mesAnterior = i > 0 ? D.nombresMes[i - 1].toLowerCase() : "septiembre de 2025";
     $("kpis").innerHTML = KPIS.map(function (k, j) {
-      var v = S[k.id], act = v[i], prev = v[i - 1], mejor, texto;
+      var act = S[k.id][i], prev = previo(k.id, i), mejor, texto;
       if (k.id === "posicion") { mejor = prev - act >= 0; texto = dec(Math.abs(prev - act), 1) + " puestos"; }
       else if (k.id === "solicitudes") { mejor = act >= prev; texto = (act >= prev ? "+" : "−") + Math.abs(act - prev); }
       else { var p = Math.round((act / prev - 1) * 100); mejor = p >= 0; texto = (p >= 0 ? "+" : "−") + Math.abs(p) + " %"; }
-      var serie = v.slice(Math.max(0, i - 5), i + 1);
+      var hist = [S.base[k.id]].concat(S[k.id]);          // el mes de partida da un punto más a los primeros meses
+      var serie = hist.slice(Math.max(0, i - 4), i + 2);
       return '<article class="kpi' + (primera ? " entra" : "") + '" style="--i:' + (3 + j) + '">' +
         '<div class="kpi-cab"><span class="kpi-ico">' + ico(k.icono, 18) + "</span>" +
         '<span class="kpi-nombre">' + k.nombre + "</span>" +
@@ -102,7 +114,7 @@
     // Las cifras cuentan desde el valor que había (o, la primera vez, desde el mes anterior)
     KPIS.forEach(function (k) {
       var el = document.querySelector('.kpi-valor[data-id="' + k.id + '"]');
-      var desde = estado.mostrado[k.id] != null ? estado.mostrado[k.id] : S[k.id][i - 1];
+      var desde = estado.mostrado[k.id] != null ? estado.mostrado[k.id] : previo(k.id, i);
       contar(el, desde, S[k.id][i], k.dec, 1000);
       estado.mostrado[k.id] = S[k.id][i];
     });
@@ -111,7 +123,7 @@
   /* ---------- Resumen del mes ----------
      Aquí se compone con plantillas a partir de los datos. En producción este texto vendría de una API o de un modelo de lenguaje. */
   function pintarInsight(i, info, primera) {
-    var dPos = S.posicion[i - 1] - S.posicion[i];
+    var dPos = previo("posicion", i) - S.posicion[i];
     var top = info.paginas.slice().sort(function (a, b) { return b.clics - a.clics; })[0];
     var cuota = Math.round(top.clics / S.clics[i] * 100);
     var op = info.busquedas.filter(function (b) { return esOportunidad(b.pos); }).sort(function (a, b) { return a.pos - b.pos; })[0];
@@ -123,7 +135,7 @@
 
     $("insight").innerHTML =
       '<div class="insight-cab"><span class="insight-ico">' + ico("sparkles", 18) + "</span>" +
-      '<h2 id="insight-titulo">Resumen de ' + info.nombre.toLowerCase() + '</h2><span class="etiqueta-ia">Resumen automático</span></div>' +
+      '<h2 id="insight-titulo">Resumen de ' + info.nombre.toLowerCase() + " de " + info.anio + '</h2><span class="etiqueta-ia">Resumen automático</span></div>' +
       '<p class="insight-texto">' + t + "</p>" +
       '<div class="sugerencia">' + ico("lightbulb", 18) + "<p><strong>Sugerencia.</strong> " + esc(info.sugerencia) + "</p></div>";
     if (!primera) aparecer($("insight"), "h2, .insight-texto, .sugerencia");
@@ -199,8 +211,11 @@
     }).join("") + "</tr></thead>";
   }
 
+  // Subir en Google es mejorar (flecha arriba); bajar, empeorar (flecha abajo)
   function cambio(m) {
-    return m > 0 ? '<span class="cambio ok">' + ico("arrow-up", 13) + dec(m, 1) + "</span>" : '<span class="cambio igual">—</span>';
+    if (m > 0) return '<span class="cambio ok">' + ico("arrow-up", 13) + dec(m, 1) + "</span>";
+    if (m < 0) return '<span class="cambio baja">' + ico("arrow-down", 13) + dec(-m, 1) + "</span>";
+    return '<span class="cambio igual">—</span>';
   }
 
   // «mover» = true cuando cambia el orden o el mes: las filas entran en cadena. Al escribir en el filtro no se animan.
@@ -209,7 +224,7 @@
     var filas = ordenar(info.busquedas.filter(function (b) { return !q || plano(b.q).indexOf(q) > -1; }), t);
     var cuerpo = filas.map(function (b, j) {
       var aviso = esOportunidad(b.pos)
-        ? '<span class="oportunidad">' + ico("triangle-alert", 13) + "Cerca del Top 10</span>" : "";
+        ? '<span class="oportunidad">' + ico("star", 13) + "Cerca del Top 10</span>" : "";
       return '<tr style="--i:' + j + '"><td><span class="kw">' + esc(cap(b.q)) + "</span>" + aviso + '</td><td class="num">' + b.clics +
         '</td><td class="num">' + badgePos(b.pos) + '</td><td class="num">' + cambio(b.mejora) + "</td></tr>";
     }).join("") || '<tr><td colspan="4" class="vacio">Ninguna búsqueda coincide con «' + esc(t.q.trim()) + "».</td></tr>";
@@ -261,17 +276,21 @@
 
   function pintarMantenimiento(info, primera) {
     var m = info.mantenimiento, cumple = m.disponibilidad >= 99.9;
-    var c = m.copias, u = m.actualizaciones;
+    var c = m.copias, u = m.actualizaciones, falladas = c[1] - c[0];
+    var textoCaida = m.minutosCaidos < 30
+      ? "Solo " + m.minutosCaidos + " minutos sin servicio en todo el mes."
+      : "Hubo " + m.minutosCaidos + " minutos sin servicio por una incidencia.";
     $("mant").innerHTML =
       '<article class="mant-item"><div class="mant-cab"><span class="kpi-ico">' + ico("activity", 18) + "</span><h3>Web disponible</h3></div>" +
       '<div class="mant-cuerpo">' + anillo(m.disponibilidad / 100, dec(m.disponibilidad, 2) + " %") +
-      "<div><p>Solo " + m.minutosCaidos + " minutos sin servicio en todo el mes.</p>" +
-      '<span class="estado ' + (cumple ? "ok" : "mal") + '">' + ico("shield-check", 14) + (cumple ? "Objetivo del 99,9 % cumplido" : "Por debajo del objetivo") + "</span></div></div></article>" +
+      "<div><p>" + textoCaida + "</p>" +
+      '<span class="estado ' + (cumple ? "ok" : "mal") + '">' + ico("shield-check", 14) + (cumple ? "Objetivo del 99,9 % cumplido" : "Por debajo del objetivo del 99,9 %") + "</span></div></div></article>" +
 
       '<article class="mant-item"><div class="mant-cab"><span class="kpi-ico">' + ico("hard-drive", 18) + "</span><h3>Copias de seguridad</h3></div>" +
       '<div class="mant-cuerpo">' + anillo(c[0] / c[1], c[0] + "/" + c[1]) +
       "<div><p>Copias diarias hechas y comprobadas.</p>" +
-      '<span class="estado ok">' + ico("check", 14) + "Ninguna copia fallida</span></div></div></article>" +
+      '<span class="estado ' + (falladas ? "mal" : "ok") + '">' + ico(falladas ? "refresh-cw" : "check", 14) +
+      (falladas ? falladas + " copia fallida, repetida al momento" : "Ninguna copia fallida") + "</span></div></div></article>" +
 
       '<article class="mant-item"><div class="mant-cab"><span class="kpi-ico">' + ico("refresh-cw", 18) + "</span><h3>Actualizaciones</h3></div>" +
       '<div class="mant-cuerpo mant-barra"><div class="barra-dato">Aplicadas: <b>' + u[0] + '</b> de ' + u[1] + "</div>" +
@@ -312,35 +331,160 @@
     pintarPaginas(i, info, !primera);
     pintarMantenimiento(info, primera);
     pintarAcciones(info, primera);
-    Array.prototype.forEach.call(document.querySelectorAll("#meses button"), function (b) {
-      var on = b.dataset.mes === clave;
-      b.setAttribute("aria-selected", on);
-      b.tabIndex = on ? 0 : -1;
-    });
-    pildora($("meses"), primera);
-    $("panel").setAttribute("aria-labelledby", "tab-" + clave);
+    pintarSelector(primera);
+    if (estado.listo && $("mensaje")) pintarContacto(false); // solo si se está escribiendo; la vista previa no se pisa
     estado.listo = true;
   }
 
-  function iniciarMeses() {
-    var claves = Object.keys(D.informes);
-    $("meses").innerHTML = '<span class="pildora" aria-hidden="true"></span>' + claves.map(function (k) {
-      return '<button type="button" role="tab" id="tab-' + k + '" data-mes="' + k + '" aria-selected="false" tabindex="-1">' + D.informes[k].nombre + "</button>";
-    }).join("");
-    $("meses").addEventListener("click", function (e) {
-      var b = e.target.closest("button[data-mes]");
-      if (!b || b.dataset.mes === estado.mes) return;
-      pintar(b.dataset.mes);
-      try { history.replaceState(null, "", "#" + b.dataset.mes); } catch (x) { /* en un iframe puede no estar permitido */ }
-    });
-    $("meses").addEventListener("keydown", function (e) {
-      var d = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
-      if (!d) return;
+  /* ---------- Selector de mes y calendario ----------
+     Muestra los doce meses de cada año; los que no tienen informe aparecen atenuados. */
+  function pintarSelector(primera) {
+    var t = $("mes-texto"), nuevo = etiquetaMes(estado.mes);
+    if (t.textContent !== nuevo) {
+      t.textContent = nuevo;
+      if (!primera && !G.reducido()) { t.classList.remove("cambia"); void t.offsetWidth; t.classList.add("cambia"); }
+    }
+    var k = claves.indexOf(estado.mes);
+    $("mes-ant").disabled = k <= 0;
+    $("mes-sig").disabled = k >= claves.length - 1;
+    if ($("calendario").classList.contains("abierto")) pintarCeldas(0);
+  }
+
+  function pintarCeldas(dir) {
+    var a = estado.anio, html = "", grid = $("cal-grid"), anio = $("cal-anio");
+    for (var m = 1; m <= 12; m++) {
+      var k = a + "-" + (m < 10 ? "0" : "") + m, inf = D.informes[k];
+      html += inf
+        ? '<button type="button" class="cal-mes" data-clave="' + k + '" data-m="' + m + '" aria-pressed="' + (k === estado.mes) + '" style="--i:' + (m - 1) + '" aria-label="' +
+          inf.nombre + " de " + a + ", " + N(S.clics[inf.indice]) + ' clics"><span>' + CORTOS[m - 1] + "</span><small>" + N(S.clics[inf.indice]) + "</small></button>"
+        : '<button type="button" class="cal-mes" data-m="' + m + '" disabled style="--i:' + (m - 1) + '" aria-label="' + MESES[m - 1] + " de " + a + ', sin informe"><span>' +
+          CORTOS[m - 1] + "</span><small>—</small></button>";
+    }
+    grid.innerHTML = html;
+    grid.className = "cal-grid" + (dir && !G.reducido() ? (dir > 0 ? " desde-der" : " desde-izq") : "");
+    if (anio.textContent !== String(a)) {
+      anio.textContent = a;
+      if (dir && !G.reducido()) { anio.classList.remove("cambia"); void anio.offsetWidth; anio.classList.add("cambia"); }
+    }
+    $("anio-ant").disabled = a <= anioMin;
+    $("anio-sig").disabled = a >= anioMax;
+  }
+
+  function iniciarSelector() {
+    var btn = $("mes-btn"), cal = $("calendario"), grid = $("cal-grid");
+
+    function abierto() { return cal.classList.contains("abierto"); }
+    function irA(clave) { if (clave !== estado.mes) { pintar(clave); guardarHash(clave); } }
+    function guardarHash(clave) { try { history.replaceState(null, "", "#" + clave); } catch (x) { /* en un iframe puede no estar permitido */ } }
+
+    function abrir() {
+      estado.anio = D.informes[estado.mes].anio;
+      pintarCeldas(0);
+      cal.classList.add("abierto");
+      cal.removeAttribute("inert");
+      cal.setAttribute("aria-hidden", "false");
+      btn.setAttribute("aria-expanded", "true");
+      setTimeout(function () {
+        var s = grid.querySelector('[aria-pressed="true"]') || grid.querySelector("button:not(:disabled)");
+        if (s) s.focus({ preventScroll: true });
+      }, 80);
+      document.addEventListener("pointerdown", fuera, true);
+      document.addEventListener("keydown", tecla);
+    }
+    function cerrar(devolverFoco) {
+      cal.classList.remove("abierto");
+      cal.setAttribute("inert", "");
+      cal.setAttribute("aria-hidden", "true");
+      btn.setAttribute("aria-expanded", "false");
+      document.removeEventListener("pointerdown", fuera, true);
+      document.removeEventListener("keydown", tecla);
+      if (devolverFoco) btn.focus({ preventScroll: true });
+    }
+    function fuera(e) { if (!$("selector").contains(e.target)) cerrar(false); }
+    function tecla(e) {
+      if (e.key === "Escape") { e.preventDefault(); cerrar(true); return; }
+      // Flechas dentro de la cuadrícula: ±1 mes y ±3 (una fila); se salta lo que no tiene informe
+      var paso = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -3, ArrowDown: 3 }[e.key];
+      var act = document.activeElement;
+      if (!paso || !act || !act.classList.contains("cal-mes")) return;
       e.preventDefault();
-      var k = claves.indexOf(estado.mes), sig = claves[(k + d + claves.length) % claves.length];
-      pintar(sig);
-      $("tab-" + sig).focus();
+      var m = +act.dataset.m + paso;
+      while (m >= 1 && m <= 12) {
+        var c = grid.querySelector('[data-m="' + m + '"]');
+        if (c && !c.disabled) { c.focus(); return; }
+        m += paso;
+      }
+    }
+
+    btn.addEventListener("click", function () { abierto() ? cerrar(false) : abrir(); });
+    grid.addEventListener("click", function (e) {
+      var b = e.target.closest(".cal-mes");
+      if (!b || b.disabled) return;
+      irA(b.dataset.clave);
+      cerrar(true);
     });
+    $("anio-ant").addEventListener("click", function () { if (estado.anio > anioMin) { estado.anio--; pintarCeldas(-1); } });
+    $("anio-sig").addEventListener("click", function () { if (estado.anio < anioMax) { estado.anio++; pintarCeldas(1); } });
+    $("ultimo").addEventListener("click", function () { irA(ultima); cerrar(true); });
+    $("mes-ant").addEventListener("click", function () { var k = claves.indexOf(estado.mes); if (k > 0) irA(claves[k - 1]); });
+    $("mes-sig").addEventListener("click", function () { var k = claves.indexOf(estado.mes); if (k < claves.length - 1) irA(claves[k + 1]); });
+  }
+
+  /* ---------- Contacto con Zyro ----------
+     En el producto real el mensaje llegaría al equipo de Zyro junto con el mes que se está viendo.
+     Aquí no se envía nada: se enseña la vista previa de cómo lo recibiría el equipo. */
+  var borrador = "";
+  function pintarContacto(enfocar) {
+    var info = D.informes[estado.mes];
+    var op = info.busquedas.filter(function (b) { return esOportunidad(b.pos); }).sort(function (a, b) { return a.pos - b.pos; })[0];
+    var temas = [
+      { etiqueta: op ? "Subir «" + cap(op.q) + "» al Top 10" : "Mejorar una palabra clave", texto: op ? "Quiero subir «" + op.q + "» al Top 10." : "Quiero mejorar una palabra clave." },
+      { etiqueta: "Una duda sobre el informe", texto: "Tengo una duda sobre este informe." },
+      { etiqueta: "Pedir una mejora o una página nueva", texto: "Quiero pedir una mejora o una página nueva." },
+      { etiqueta: "Hablar con una persona", texto: "Prefiero hablar con una persona de Zyro." }
+    ];
+    $("contacto-form").innerHTML =
+      '<span class="etiqueta">¿Sobre qué quieres hablar?</span>' +
+      '<div class="chips">' + temas.map(function (t, j) { return '<button type="button" class="chip" data-tema="' + j + '">' + esc(t.etiqueta) + "</button>"; }).join("") + "</div>" +
+      '<label for="mensaje">Tu mensaje</label>' +
+      '<textarea id="mensaje" placeholder="Escribe aquí lo que quieras preguntar o mejorar" aria-describedby="error-mensaje"></textarea>' +
+      '<p class="error-msg" id="error-mensaje" role="alert" hidden>Escribe un mensaje para que podamos ayudarte.</p>' +
+      '<div class="form-pie"><button type="button" class="boton boton-primario" id="enviar"><span class="ico-env">' + ico("send", 16) + "</span>Enviar a Zyro</button>" +
+      '<p class="nota-demo">Demostración: en tu informe real, el mensaje llega a tu equipo de Zyro con el mes que estás viendo.</p></div>';
+    var caja = $("mensaje");
+    caja.value = borrador;
+    caja.addEventListener("input", function () { borrador = caja.value; $("error-mensaje").hidden = true; });
+    $("contacto-form").querySelector(".chips").addEventListener("click", function (e) {
+      var b = e.target.closest(".chip");
+      if (!b) return;
+      var texto = temas[+b.dataset.tema].texto;
+      caja.value = caja.value.trim() ? caja.value.replace(/\s+$/, "") + "\n" + texto : texto;
+      borrador = caja.value;
+      $("error-mensaje").hidden = true;
+      caja.focus();
+    });
+    $("enviar").addEventListener("click", enviar);
+    if (enfocar) caja.focus({ preventScroll: true });
+  }
+
+  function enviar() {
+    var texto = $("mensaje").value.trim();
+    if (texto.length < 3) { $("error-mensaje").hidden = false; $("mensaje").focus(); return; }
+    var info = D.informes[estado.mes];
+    $("contacto-form").innerHTML =
+      '<div class="vista-previa"><h3><span class="marca">' + ico("check", 13) + "</span>Así lo recibiría tu equipo de Zyro</h3>" +
+      '<div class="correo"><dl><dt>Cliente</dt><dd>Reformas Nova · ' + esc(D.dominio) + "</dd><dt>Informe</dt><dd>" + esc(info.nombre + " de " + info.anio) + "</dd></dl>" +
+      "<blockquote>" + esc(texto) + "</blockquote></div>" +
+      '<p class="nota-demo">Esto es una demostración: no se ha enviado nada. En tu informe real, tu equipo de Zyro recibiría este mensaje y te respondería.</p>' +
+      '<div class="form-pie"><button type="button" class="boton" id="otro">Escribir otro mensaje</button></div></div>';
+    borrador = "";
+    $("otro").addEventListener("click", function () { pintarContacto(true); aparecer($("contacto-form"), ".etiqueta, .chips, label, textarea, .form-pie"); });
+  }
+
+  function irAContacto() {
+    var c = $("contacto");
+    c.scrollIntoView({ behavior: G.reducido() ? "auto" : "smooth", block: "start" });
+    setTimeout(function () { var m = $("mensaje"); if (m) m.focus({ preventScroll: true }); }, G.reducido() ? 0 : 650);
   }
 
   /* ---------- Tema ----------
@@ -378,19 +522,20 @@
   $("dominio").innerHTML = ico("globe", 14) + D.dominio;
   $("agencia").innerHTML = ico("sparkles", 13) + "Informe generado por <strong>" + esc(D.agencia) + "</strong>";
 
-  // Enlace de contacto: mientras no esté configurado, avisa en lugar de recargar la página
+  // Todos los accesos a «contactar» llevan al formulario del informe; si hay una página de contacto propia, se ofrece además
   Array.prototype.forEach.call(document.querySelectorAll("[data-contacto]"), function (a) {
-    a.setAttribute("href", D.contacto);
-    if (D.contacto === "#") a.addEventListener("click", function (e) { e.preventDefault(); avisar("Aquí iría el enlace a la página de contacto de Zyro."); });
+    a.setAttribute("href", "#contacto");
+    a.addEventListener("click", function (e) { e.preventDefault(); irAContacto(); });
   });
+  $("ir-contacto").addEventListener("click", irAContacto);
 
   // Entrada escalonada de la cabecera y las tarjetas (los KPI se escalonan solos)
   [[".cab-id", 0], [".cab-acciones", 1], ["main > .insight", 2], ["main > .tarjeta", 7], ["main > .dos-col > .tarjeta", 8], ["main > .tarjeta ~ .tarjeta", 8]].forEach(function (par) {
     Array.prototype.forEach.call(document.querySelectorAll(par[0]), function (e) { e.classList.add("entra"); e.style.setProperty("--i", par[1]); });
   });
 
-  iniciarMeses();
   iniciarTema();
+  iniciarSelector();
   crearEvolucion(D.informes[estado.mes].indice);
   conectarTabla("busq", "q-busq", "t-busq", function (mover) { pintarBusquedas(D.informes[estado.mes].indice, D.informes[estado.mes], mover); });
   conectarTabla("pag", "q-pag", "t-pag", function (mover) { pintarPaginas(D.informes[estado.mes].indice, D.informes[estado.mes], mover); });
@@ -401,19 +546,22 @@
     else window.print();
   });
 
-  // El gráfico y las píldoras se ajustan al ancho disponible
+  // El gráfico se ajusta al ancho disponible
   var anchoPrevio = 0;
   var reajustar = function () {
     var w = $("evo").clientWidth;
     if (Math.abs(w - anchoPrevio) > 1) { anchoPrevio = w; estado.evo.redibujar(); }
-    pildora($("meses"), true);
     pildora($("metricas"), true);
   };
   if (window.ResizeObserver) new ResizeObserver(reajustar).observe(document.querySelector(".app"));
   else window.addEventListener("resize", reajustar);
 
-  var pedido = (location.hash || "").replace("#", "");
-  pintar(D.informes[pedido] ? pedido : estado.mes);
+  // Enlace directo: #2026-09 (también se entiende #septiembre y se toma el más reciente)
+  var pedido = (location.hash || "").replace("#", "").toLowerCase();
+  var inicial = D.informes[pedido] ? pedido : null;
+  if (!inicial) claves.slice().reverse().some(function (k) { if (D.informes[k].nombre.toLowerCase() === pedido) { inicial = k; return true; } });
+  pintar(inicial || ultima);
+  pintarContacto(false);
   pildora($("metricas"), true);
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { pildora($("meses"), true); pildora($("metricas"), true); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(function () { pildora($("metricas"), true); });
 })();
