@@ -13,6 +13,8 @@
   var esc = function (s) {
     return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; });
   };
+  // Primera letra en mayúscula (solo para mostrar: los filtros usan el texto original)
+  var cap = function (s) { return s.charAt(0).toUpperCase() + s.slice(1); };
   var plano = function (s) { return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase(); };
   var suma = function (a, f) { return a.reduce(function (t, x) { return t + f(x); }, 0); };
 
@@ -41,7 +43,7 @@
   ];
 
   function pintarKpis(i) {
-    var mesAnterior = D.etiquetasLargas[i - 1].split(" ")[0];
+    var mesAnterior = D.nombresMes[i - 1].toLowerCase();
     $("kpis").innerHTML = KPIS.map(function (k) {
       var v = S[k.id], act = v[i], prev = v[i - 1], mejor, texto;
       if (k.id === "posicion") { mejor = prev - act >= 0; texto = dec(Math.abs(prev - act), 1) + " puestos"; }
@@ -55,7 +57,7 @@
         '<span class="ayuda" role="tooltip" id="ayuda-' + k.id + '">' + k.ayuda + "</span></div>" +
         '<div class="kpi-valor">' + k.fmt(act) + "</div>" +
         '<div class="kpi-pie"><div><span class="delta ' + (mejor ? "ok" : "mal") + '">' +
-        ico(mejor ? "arrow-up" : "arrow-down", 13) + texto + '</span><span class="vs">frente a ' + mesAnterior.toLowerCase() + "</span></div>" +
+        ico(mejor ? "arrow-up" : "arrow-down", 13) + texto + '</span><span class="vs">Frente a ' + mesAnterior + "</span></div>" +
         G.sparkline(serie, { id: "sp-" + k.id, invertido: k.invertido, malo: !mejor }) + "</div></article>";
     }).join("");
   }
@@ -156,7 +158,7 @@
     var cuerpo = filas.map(function (b) {
       var aviso = esOportunidad(b.pos)
         ? '<span class="oportunidad">' + ico("triangle-alert", 13) + "Cerca del Top 10</span>" : "";
-      return '<tr><td><span class="kw">' + esc(b.q) + "</span>" + aviso + '</td><td class="num">' + b.clics +
+      return '<tr><td><span class="kw">' + esc(cap(b.q)) + "</span>" + aviso + '</td><td class="num">' + b.clics +
         '</td><td class="num">' + badgePos(b.pos) + '</td><td class="num">' + cambio(b.mejora) + "</td></tr>";
     }).join("") || '<tr><td colspan="4" class="vacio">Ninguna búsqueda coincide con «' + esc(t.q.trim()) + "».</td></tr>";
 
@@ -211,7 +213,7 @@
     $("mant").innerHTML =
       '<article class="mant-item"><div class="mant-cab"><span class="kpi-ico">' + ico("activity", 18) + "</span><h3>Web disponible</h3></div>" +
       '<div class="mant-cuerpo">' + anillo(m.disponibilidad / 100, dec(m.disponibilidad, 2) + " %") +
-      "<div><p>" + m.minutosCaidos + " minutos sin servicio en todo el mes.</p>" +
+      "<div><p>Solo " + m.minutosCaidos + " minutos sin servicio en todo el mes.</p>" +
       '<span class="estado ' + (cumple ? "ok" : "mal") + '">' + ico("shield-check", 14) + (cumple ? "Objetivo del 99,9 % cumplido" : "Por debajo del objetivo") + "</span></div></div></article>" +
 
       '<article class="mant-item"><div class="mant-cab"><span class="kpi-ico">' + ico("hard-drive", 18) + "</span><h3>Copias de seguridad</h3></div>" +
@@ -220,7 +222,7 @@
       '<span class="estado ok">' + ico("check", 14) + "Ninguna copia fallida</span></div></div></article>" +
 
       '<article class="mant-item"><div class="mant-cab"><span class="kpi-ico">' + ico("refresh-cw", 18) + "</span><h3>Actualizaciones</h3></div>" +
-      '<div class="mant-cuerpo mant-barra"><div class="barra-dato"><b>' + u[0] + '</b> de ' + u[1] + " aplicadas</div>" +
+      '<div class="mant-cuerpo mant-barra"><div class="barra-dato">Aplicadas: <b>' + u[0] + '</b> de ' + u[1] + "</div>" +
       '<div class="barra" role="progressbar" aria-valuemin="0" aria-valuemax="' + u[1] + '" aria-valuenow="' + u[0] + '" aria-label="Actualizaciones aplicadas">' +
       '<span data-final="' + Math.round(u[0] / u[1] * 100) + '" style="width:0"></span></div>' +
       "<p>Gestor de contenidos y complementos al día.</p></div></article>";

@@ -9,6 +9,7 @@ window.INFORME = {
   // Octubre de 2025 a septiembre de 2026
   etiquetas: ["Oct", "Nov", "Dic", "Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep"],
   etiquetasLargas: ["Oct 2025", "Nov 2025", "Dic 2025", "Ene 2026", "Feb 2026", "Mar 2026", "Abr 2026", "May 2026", "Jun 2026", "Jul 2026", "Ago 2026", "Sep 2026"],
+  nombresMes: ["Octubre", "Noviembre", "Diciembre", "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre"],
   serie: {
     clics:        [205, 225, 218, 270, 300, 295, 345, 370, 362, 425, 456, 497],
     impresiones:  [9800, 10900, 10700, 12900, 14000, 13800, 15600, 16500, 16800, 18900, 20970, 23700],

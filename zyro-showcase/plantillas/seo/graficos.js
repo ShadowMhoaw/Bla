@@ -115,7 +115,7 @@
       }).join("");
       var dl = delta(estado.metrica, i);
       tip.innerHTML = '<div class="mes">' + cfg.etiquetasLargas[i] + "</div>" + filas +
-        (dl ? '<div class="var ' + (dl.charAt(0) === "+" ? "ok" : "mal") + '">' + dl + " frente al mes anterior</div>" : "");
+        (dl ? '<div class="var ' + (dl.charAt(0) === "+" ? "ok" : "mal") + '">Frente al mes anterior: ' + dl + "</div>" : "");
       tip.classList.add("ver");
 
       var ancho = tip.offsetWidth, alto = tip.offsetHeight;
